@@ -1,0 +1,20 @@
+"Phrases"
+{
+	"NotAlive"
+	{
+		"en"		"{green}[Master Chief Colors Menu] {olive}You must be alive"
+		"ru"		"{green}[Master Chief Colors Menu] {olive}Вы должны быть живы"
+	}
+	
+	"Zombie"
+	{
+		"en"		"{green}[Master Chief Colors Menu] {olive}You must be a human and your human class should be {white}Super Soldier"
+		"ru"		"{green}[Master Chief Colors Menu] {olive}Вы должны быть человеком и Ваш класс человека должен быть {white}Super Soldier"
+	}
+	
+	"WrongModel"
+	{
+		"en"		"{green}[Master Chief Colors Menu] {olive}Your current model isn't colorable. This function available only for human class - {white}Super Soldier"
+		"ru"		"{green}[Master Chief Colors Menu] {olive}Ваша модель не может цветной. Эта функция доступка только для класса людей - {white}Super Soldier"
+	}
+}
