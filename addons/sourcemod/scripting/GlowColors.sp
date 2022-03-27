@@ -3,10 +3,8 @@
 #include <sdkhooks>
 #include <clientprefs>
 #include <regex>
-#undef REQUIRE_PLUGIN
-#include <zombiereloaded>
-#define REQUIRE_PLUGIN
 #include <multicolors>
+#tryinclude <zombiereloaded>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -316,6 +314,7 @@ void DisplayGlowColorMenu(int client)
 		{		
 			CPrintToChat(client, "%T", "NotAlive", client);
 		}
+#if defined _zr_included
 		else if(IsClientInGame(client) && IsPlayerAlive(client) && ZR_IsClientZombie(client))
 		{	
 			CPrintToChat(client, "%T", "Zombie", client);
@@ -324,6 +323,7 @@ void DisplayGlowColorMenu(int client)
 		{	
 			CPrintToChat(client, "%T", "WrongModel", client);
 		}
+#endif
 		else
 			g_GlowColorsMenu.Display(client, MENU_TIME_FOREVER);
 	}
@@ -397,11 +397,19 @@ bool ApplyGlowColor(int client)
 
 	if(IsPlayerAlive(client) && CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) || CheckCommandAccess(client, "", ADMFLAG_ROOT))
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
-	
+
+#if defined _zr_included
 	if(IsPlayerAlive(client) && ZR_GetActiveClass(client) == ZR_GetClassByName("Master Chief"))
+#else
+	if(IsPlayerAlive(client))
+#endif
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
-	
+
+#if defined _zr_included
 	if(IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) && ZR_IsClientZombie(client))
+#else
+	if(IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2))
+#endif
 		ToolsSetEntityColor(client, 255, 255, 255);
 
 	return Ret;
