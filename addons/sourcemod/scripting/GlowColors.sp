@@ -9,12 +9,14 @@
 #pragma semicolon 1
 #pragma newdecls required
 
+#define CHAT_PREFIX "{green}[SM]{default}"
+
 public Plugin myinfo =
 {
 	name = "GlowColors & Master Chief colors",
-	author = "BotoX & inGame",
+	author = "BotoX, inGame, .Rushaway",
 	description = "Change your clients colors.",
-	version = "1.1",
+	version = "1.2",
 	url = ""
 }
 
@@ -22,7 +24,7 @@ Menu g_GlowColorsMenu;
 Handle g_hClientCookie = INVALID_HANDLE;
 Handle g_Cvar_PluginTimer = INVALID_HANDLE;
 
-//ConVar g_Cvar_MinBrightness;
+ConVar g_Cvar_MinBrightness;
 Regex g_Regex_RGB;
 Regex g_Regex_HEX;
 
@@ -52,7 +54,7 @@ public void OnPluginStart()
 	HookEvent("player_spawn", Event_ApplyGlowcolor, EventHookMode_Post);
 	HookEvent("player_team", Event_ApplyGlowcolor, EventHookMode_Post);
 
-	//g_Cvar_MinBrightness = CreateConVar("sm_glowcolor_minbrightness", "100", "Lowest brightness value for glowcolor.", 0, true, 0.0, true, 255.0);
+	g_Cvar_MinBrightness = CreateConVar("sm_glowcolor_minbrightness", "100", "Lowest brightness value for glowcolor.", 0, true, 0.0, true, 255.0);
 	
 	g_Cvar_PluginTimer = CreateConVar("sm_glowcolors_timer", "5.0", "When the colors should spawning again (in seconds)");
 
@@ -61,7 +63,7 @@ public void OnPluginStart()
 
 	for(int client = 1; client <= MaxClients; client++)
 	{
-		if(IsClientInGame(client) && !IsFakeClient(client) /*&& AreClientCookiesCached(client)*/)
+		if(IsClientInGame(client) && !IsFakeClient(client) && AreClientCookiesCached(client))
 		{
 			ApplyGlowColor(client);
 		}
@@ -74,7 +76,7 @@ public void OnPluginEnd()
 {
 	for(int client = 1; client <= MaxClients; client++)
 	{
-		if(IsClientInGame(client) && !IsFakeClient(client) /*&& AreClientCookiesCached(client)*/)
+		if(IsClientInGame(client) && !IsFakeClient(client) && AreClientCookiesCached(client))
 		{
 			OnClientDisconnect(client);
 			ApplyGlowColor(client);
@@ -226,7 +228,7 @@ public Action Command_GlowColors(int client, int args)
 
 		if(!IsValidHex(sColorString))
 		{
-			PrintToChat(client, "Invalid HEX color code supplied.");
+			CPrintToChat(client, "%s Invalid HEX color code supplied.", CHAT_PREFIX);
 			return Plugin_Handled;
 		}
 
@@ -243,7 +245,7 @@ public Action Command_GlowColors(int client, int args)
 
 		if(!IsValidRGBNum(sColorString))
 		{
-			PrintToChat(client, "Invalid RGB color code supplied.");
+			CPrintToChat(client, "%s Invalid RGB color code supplied.", CHAT_PREFIX);
 			return Plugin_Handled;
 		}
 
@@ -257,7 +259,7 @@ public Action Command_GlowColors(int client, int args)
 	{
 		char sCommand[32];
 		GetCmdArg(0, sCommand, sizeof(sCommand));
-		PrintToChat(client, "[SM] Usage: %s <RRGGBB HEX | 0-255 0-255 0-255 RGB CODE>", sCommand);
+		CPrintToChat(client, "%s Usage: %s <RRGGBB HEX | 0-255 0-255 0-255 RGB CODE>", CHAT_PREFIX, sCommand);
 		return Plugin_Handled;
 	}
 
@@ -265,8 +267,14 @@ public Action Command_GlowColors(int client, int args)
 		return Plugin_Handled;
 
 	if(GetCmdReplySource() == SM_REPLY_TO_CHAT)
-		PrintToChat(client, "\x01[SM] Set color to: \x07%06X%06X\x01", Color, Color);
-
+	{
+		if(g_aRainbowFrequency[client])
+		{
+			SDKUnhook(client, SDKHook_PostThinkPost, OnPostThinkPost);
+			g_aRainbowFrequency[client] = 0.0;
+		}
+		CPrintToChat(client, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);	
+	}
 	return Plugin_Handled;
 }
 
@@ -286,7 +294,7 @@ public Action Command_Rainbow(int client, int args)
 			SDKUnhook(client, SDKHook_PostThinkPost, OnPostThinkPost);
 
 		g_aRainbowFrequency[client] = 0.0;
-		PrintToChat(client, "[SM] Disabled rainbow glowcolors.");
+		CPrintToChat(client, "%s{olive} Disabled {default}rainbow glowcolors.", CHAT_PREFIX);
 
 		ApplyGlowColor(client);
 	}
@@ -296,7 +304,7 @@ public Action Command_Rainbow(int client, int args)
 			SDKHook(client, SDKHook_PostThinkPost, OnPostThinkPost);
 
 		g_aRainbowFrequency[client] = Frequency;
-		PrintToChat(client, "[SM] Enabled rainbow glowcolors. (Frequency = %f)", Frequency);
+		CPrintToChat(client, "%s{olive} Enabled {default}rainbow glowcolors. (Frequency = {olive}%f{default})", CHAT_PREFIX, Frequency);
 	}
 	return Plugin_Handled;
 }
@@ -343,8 +351,12 @@ public int MenuHandler_GlowColorsMenu(Menu menu, MenuAction action, int param1, 
 				(g_aGlowColor[param1][1] << 8) +
 				(g_aGlowColor[param1][2] << 0);
 
+			if(g_aRainbowFrequency[param1])
+				SDKUnhook(param1, SDKHook_PostThinkPost, OnPostThinkPost);
+			g_aRainbowFrequency[param1] = 0.0;
+
 			ApplyGlowColor(param1);
-			PrintToChat(param1, "\x01[SM] Set color to: \x07%06X%06X\x01", Color, Color);
+			CPrintToChat(param1, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);
 		}
 	}
 }
@@ -382,17 +394,17 @@ bool ApplyGlowColor(int client)
 		return false;
 
 	bool Ret = true;
-	/*int Brightness = ColorBrightness(g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
+	int Brightness = ColorBrightness(g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 	if(Brightness < g_Cvar_MinBrightness.IntValue)
 	{
-		PrintToChat(client, "Your glowcolor is too dark! (brightness = %d/255, allowed values are >= %d)",
-			Brightness, g_Cvar_MinBrightness.IntValue);
+		CPrintToChat(client, "%s Your glowcolor is too dark! (brightness = {red}%d{default}/255, allowed values are {green}> %d{default})", CHAT_PREFIX,
+			Brightness, g_Cvar_MinBrightness.IntValue -1 );
 
 		g_aGlowColor[client][0] = 255;
 		g_aGlowColor[client][1] = 255;
 		g_aGlowColor[client][2] = 255;
 		Ret = false;
-	}*/
+	}
 
 
 	if(IsPlayerAlive(client) && CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) || CheckCommandAccess(client, "", ADMFLAG_ROOT))
@@ -470,11 +482,11 @@ stock bool IsValidHex(char[] sString)
 	return false;
 }
 
-/*stock int ColorBrightness(int Red, int Green, int Blue)
+stock int ColorBrightness(int Red, int Green, int Blue)
 {
 	// http://www.nbdtech.com/Blog/archive/2008/04/27/Calculating-the-Perceived-Brightness-of-a-Color.aspx
 	return RoundToFloor(SquareRoot(
 		Red * Red * 0.241 +
 		Green * Green + 0.691 +
 		Blue * Blue + 0.068));
-}*/
+}
