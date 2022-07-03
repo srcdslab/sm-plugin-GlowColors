@@ -359,6 +359,7 @@ public int MenuHandler_GlowColorsMenu(Menu menu, MenuAction action, int param1, 
 			CPrintToChat(param1, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);
 		}
 	}
+	return 0;
 }
 
 public void Event_ApplyGlowcolor(Event event, const char[] name, bool dontBroadcast)
@@ -367,7 +368,6 @@ public void Event_ApplyGlowcolor(Event event, const char[] name, bool dontBroadc
 	if(!client)
 		return;
 
-	RequestFrame(view_as<RequestFrameCallback>(ApplyGlowColor), client);
 	CreateTimer(GetConVarFloat(g_Cvar_PluginTimer), Timer_ApplyGlowColor, GetClientSerial(client), TIMER_FLAG_NO_MAPCHANGE);
 }
 
@@ -376,6 +376,7 @@ public Action Timer_ApplyGlowColor(Handle timer, int serial)
 	int client = GetClientFromSerial(serial);
 	if(client)
 		ApplyGlowColor(client);
+	return Plugin_Continue;
 }
 
 public void ZR_OnClientInfected(int client, int attacker, bool motherInfect, bool respawnOverride, bool respawn)
