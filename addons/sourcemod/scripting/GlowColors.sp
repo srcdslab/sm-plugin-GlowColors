@@ -4,7 +4,10 @@
 #include <clientprefs>
 #include <regex>
 #include <multicolors>
+
+#undef REQUIRE_PLUGIN
 #tryinclude <zombiereloaded>
+#define REQUIRE_PLUGIN
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -16,7 +19,7 @@ public Plugin myinfo =
 	name = "GlowColors & Master Chief colors",
 	author = "BotoX, inGame, .Rushaway",
 	description = "Change your clients colors.",
-	version = "1.2",
+	version = "1.3",
 	url = ""
 }
 
@@ -30,6 +33,15 @@ Regex g_Regex_HEX;
 
 int g_aGlowColor[MAXPLAYERS + 1][3];
 float g_aRainbowFrequency[MAXPLAYERS + 1];
+bool g_Plugin_ZR = false;
+
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
+	CreateNative("Gl_SetRainbow", Native_SetRainbow);
+	CreateNative("Gl_RemoveRainbow", Native_RemoveRainbow);
+
+	RegPluginLibrary("glowcolors");
+	return APLRes_Success;
+}
 
 public void OnPluginStart()
 {
@@ -70,6 +82,23 @@ public void OnPluginStart()
 	}
 
 	AutoExecConfig(true);
+}
+
+public void OnAllPluginsLoaded()
+{
+	g_Plugin_ZR = LibraryExists("zombiereloaded");
+}
+
+public void OnLibraryAdded(const char[] sName)
+{
+	if (strcmp(sName, "zombiereloaded", false) == 0)
+		g_Plugin_ZR = true;
+}
+
+public void OnLibraryRemoved(const char[] sName)
+{
+	if (strcmp(sName, "zombiereloaded", false) == 0)
+		g_Plugin_ZR = false;
 }
 
 public void OnPluginEnd()
@@ -304,7 +333,7 @@ public Action Command_Rainbow(int client, int args)
 			SDKHook(client, SDKHook_PostThinkPost, OnPostThinkPost);
 
 		g_aRainbowFrequency[client] = Frequency;
-		CPrintToChat(client, "%s{olive} Enabled {default}rainbow glowcolors. (Frequency = {olive}%f{default})", CHAT_PREFIX, Frequency);
+		CPrintToChat(client, "%s{olive} Enabled {default}rainbow glowcolors. (Frequency = {olive}%0.1f{default})", CHAT_PREFIX, Frequency);
 	}
 	return Plugin_Handled;
 }
@@ -323,11 +352,11 @@ void DisplayGlowColorMenu(int client)
 			CPrintToChat(client, "%T", "NotAlive", client);
 		}
 #if defined _zr_included
-		else if(IsClientInGame(client) && IsPlayerAlive(client) && ZR_IsClientZombie(client))
+		else if(g_Plugin_ZR && IsClientInGame(client) && IsPlayerAlive(client) && ZR_IsClientZombie(client))
 		{	
 			CPrintToChat(client, "%T", "Zombie", client);
 		}
-		else if(ZR_GetActiveClass(client) != ZR_GetClassByName("Master Chief") && !ZR_IsClientZombie(client))
+		else if(g_Plugin_ZR && ZR_GetActiveClass(client) != ZR_GetClassByName("Master Chief") && !ZR_IsClientZombie(client))
 		{	
 			CPrintToChat(client, "%T", "WrongModel", client);
 		}
@@ -412,14 +441,14 @@ bool ApplyGlowColor(int client)
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 
 #if defined _zr_included
-	if(IsPlayerAlive(client) && ZR_GetActiveClass(client) == ZR_GetClassByName("Master Chief"))
+	if(g_Plugin_ZR && IsPlayerAlive(client) && ZR_GetActiveClass(client) == ZR_GetClassByName("Master Chief"))
 #else
 	if(IsPlayerAlive(client))
 #endif
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 
 #if defined _zr_included
-	if(IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) && ZR_IsClientZombie(client))
+	if(g_Plugin_ZR && IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) && ZR_IsClientZombie(client))
 #else
 	if(IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2))
 #endif
@@ -490,4 +519,18 @@ stock int ColorBrightness(int Red, int Green, int Blue)
 		Red * Red * 0.241 +
 		Green * Green + 0.691 +
 		Blue * Blue + 0.068));
+}
+
+public int Native_SetRainbow(Handle hPlugins, int numParams) {
+	int client = GetNativeCell(1);
+
+	g_aRainbowFrequency[client] = 1.0;
+	return 0;
+}
+
+public int Native_RemoveRainbow(Handle hPlugins, int numParams) {
+	int client = GetNativeCell(1);
+
+	g_aRainbowFrequency[client] = 0.0;
+	return 0;
 }
