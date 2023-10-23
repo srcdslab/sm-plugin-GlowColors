@@ -36,8 +36,8 @@ float g_aRainbowFrequency[MAXPLAYERS + 1];
 bool g_Plugin_ZR = false;
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
-	CreateNative("Gl_SetRainbow", Native_SetRainbow);
-	CreateNative("Gl_RemoveRainbow", Native_RemoveRainbow);
+	CreateNative("GlowColors_SetRainbow", Native_SetRainbow);
+	CreateNative("GlowColors_RemoveRainbow", Native_RemoveRainbow);
 
 	RegPluginLibrary("glowcolors");
 	return APLRes_Success;

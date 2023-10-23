@@ -3,8 +3,8 @@
 #endif
 #define _glowcolors_included
 
-native void Gl_SetRainbow(int client);
-native void Gl_RemoveRainbow(int client);
+native void GlowColors_SetRainbow(int client);
+native void GlowColors_RemoveRainbow(int client);
 
 public SharedPlugin __pl_glowcolors = 
 {
@@ -21,7 +21,7 @@ public SharedPlugin __pl_glowcolors =
 #if !defined REQUIRE_PLUGIN
 public __pl_glowcolors_SetNTVOptional()
 {
-	MarkNativeAsOptional("Gl_SetRainbow");
-	MarkNativeAsOptional("Gl_RemoveRainbow");
+	MarkNativeAsOptional("GlowColors_SetRainbow");
+	MarkNativeAsOptional("GlowColors_RemoveRainbow");
 }
 #endif
