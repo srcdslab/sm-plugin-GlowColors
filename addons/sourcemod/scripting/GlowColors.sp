@@ -19,7 +19,7 @@ public Plugin myinfo =
 	name = "GlowColors & Master Chief colors",
 	author = "BotoX, inGame, .Rushaway",
 	description = "Change your clients colors.",
-	version = "1.3",
+	version = "1.3.1",
 	url = ""
 }
 
@@ -28,6 +28,7 @@ Handle g_hClientCookie = INVALID_HANDLE;
 Handle g_Cvar_PluginTimer = INVALID_HANDLE;
 
 ConVar g_Cvar_MinBrightness;
+ConVar g_Cvar_MinRainbowFrequency;
 Regex g_Regex_RGB;
 Regex g_Regex_HEX;
 
@@ -67,8 +68,8 @@ public void OnPluginStart()
 	HookEvent("player_team", Event_ApplyGlowcolor, EventHookMode_Post);
 
 	g_Cvar_MinBrightness = CreateConVar("sm_glowcolor_minbrightness", "100", "Lowest brightness value for glowcolor.", 0, true, 0.0, true, 255.0);
-	
 	g_Cvar_PluginTimer = CreateConVar("sm_glowcolors_timer", "5.0", "When the colors should spawning again (in seconds)");
+	g_Cvar_MinRainbowFrequency = CreateConVar("sm_glowcolors_minrainbowfrequency", "1.0", "Lowest frequency value for rainbow glowcolors before auto-clamp.", 0, true, 0.1, true, 60.0);
 
 	LoadConfig();
 	LoadTranslations("GlowColors.phrases");
@@ -329,6 +330,11 @@ public Action Command_Rainbow(int client, int args)
 	}
 	else
 	{
+		float MinFrequency = g_Cvar_MinRainbowFrequency.FloatValue;
+
+		if (Frequency < MinFrequency)
+			Frequency = MinFrequency;
+
 		if(!g_aRainbowFrequency[client])
 			SDKHook(client, SDKHook_PostThinkPost, OnPostThinkPost);
 
