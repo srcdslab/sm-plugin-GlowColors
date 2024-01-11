@@ -69,7 +69,7 @@ public void OnPluginStart()
 
 	g_Cvar_MinBrightness = CreateConVar("sm_glowcolor_minbrightness", "100", "Lowest brightness value for glowcolor.", 0, true, 0.0, true, 255.0);
 	g_Cvar_PluginTimer = CreateConVar("sm_glowcolors_timer", "5.0", "When the colors should spawning again (in seconds)");
-	g_Cvar_MinRainbowFrequency = CreateConVar("sm_glowcolors_minrainbowfrequency", "1.0", "Lowest frequency value for rainbow glowcolors before auto-clamp.", 0, true, 0.1, true, 60.0);
+	g_Cvar_MinRainbowFrequency = CreateConVar("sm_glowcolors_minrainbowfrequency", "1.0", "Lowest frequency value for rainbow glowcolors before auto-clamp.", 0, true, 0.1);
 
 	LoadConfig();
 	LoadTranslations("GlowColors.phrases");
