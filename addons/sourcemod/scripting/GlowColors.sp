@@ -19,21 +19,25 @@ public Plugin myinfo =
 	name = "GlowColors & Master Chief colors",
 	author = "BotoX, inGame, .Rushaway",
 	description = "Change your clients colors.",
-	version = "1.3.1",
+	version = "1.3.2",
 	url = ""
 }
 
 Menu g_GlowColorsMenu;
 Handle g_hClientCookie = INVALID_HANDLE;
+Handle g_hClientCookieRainbow = INVALID_HANDLE;
+Handle g_hClientFrequency = INVALID_HANDLE;
 Handle g_Cvar_PluginTimer = INVALID_HANDLE;
 
 ConVar g_Cvar_MinBrightness;
 ConVar g_Cvar_MinRainbowFrequency;
+ConVar g_Cvar_MaxRainbowFrequency;
 Regex g_Regex_RGB;
 Regex g_Regex_HEX;
 
 int g_aGlowColor[MAXPLAYERS + 1][3];
 float g_aRainbowFrequency[MAXPLAYERS + 1];
+bool g_bRainbowEnabled[MAXPLAYERS+1] = {false,...};
 bool g_Plugin_ZR = false;
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
@@ -46,7 +50,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
-	g_hClientCookie = RegClientCookie("glowcolor", "", CookieAccess_Protected);
+	g_hClientCookie = RegClientCookie("glowcolor", "Player glowcolor", CookieAccess_Protected);
+	g_hClientCookieRainbow = RegClientCookie("rainbow", "Rainbow status", CookieAccess_Protected);
+	g_hClientFrequency = RegClientCookie("rainbow_frequency", "Rainbow frequency", CookieAccess_Protected);
 
 	g_Regex_RGB = CompileRegex("^(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\s+){2}([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$");
 	g_Regex_HEX = CompileRegex("^(#?)([A-Fa-f0-9]{6})$");
@@ -64,12 +70,14 @@ public void OnPluginStart()
 
 	RegAdminCmd("sm_rainbow", Command_Rainbow, ADMFLAG_CUSTOM1, "Enable rainbow glowcolors. sm_rainbow [frequency]");
 
+	HookEvent("player_disconnect", Event_ClientDisconnect, EventHookMode_Pre);
 	HookEvent("player_spawn", Event_ApplyGlowcolor, EventHookMode_Post);
 	HookEvent("player_team", Event_ApplyGlowcolor, EventHookMode_Post);
 
 	g_Cvar_MinBrightness = CreateConVar("sm_glowcolor_minbrightness", "100", "Lowest brightness value for glowcolor.", 0, true, 0.0, true, 255.0);
 	g_Cvar_PluginTimer = CreateConVar("sm_glowcolors_timer", "5.0", "When the colors should spawning again (in seconds)");
 	g_Cvar_MinRainbowFrequency = CreateConVar("sm_glowcolors_minrainbowfrequency", "1.0", "Lowest frequency value for rainbow glowcolors before auto-clamp.", 0, true, 0.1);
+	g_Cvar_MaxRainbowFrequency = CreateConVar("sm_glowcolors_maxrainbowfrequency", "10.0", "Highest frequency value for rainbow glowcolors before auto-clamp.", 0, true, 0.1);
 
 	LoadConfig();
 	LoadTranslations("GlowColors.phrases");
@@ -109,12 +117,13 @@ public void OnPluginEnd()
 		if(IsClientInGame(client) && !IsFakeClient(client) && AreClientCookiesCached(client))
 		{
 			OnClientDisconnect(client);
-			ApplyGlowColor(client);
 		}
 	}
 
 	delete g_GlowColorsMenu;
 	CloseHandle(g_hClientCookie);
+	CloseHandle(g_hClientCookieRainbow);
+	CloseHandle(g_hClientFrequency);
 }
 
 void LoadConfig()
@@ -162,6 +171,7 @@ public void OnClientConnected(int client)
 	g_aGlowColor[client][1] = 255;
 	g_aGlowColor[client][2] = 255;
 	g_aRainbowFrequency[client] = 0.0;
+	g_bRainbowEnabled[client] = false;
 }
 
 public void OnClientCookiesCached(int client)
@@ -178,55 +188,45 @@ public void OnClientPostAdminCheck(int client)
 
 void ReadClientCookies(int client)
 {
-	if(!client)
+	if(!client || !IsClientInGame(client))
 		return;
 	
 	char sCookie[16];
-	if(IsClientInGame(client))
-		GetClientCookie(client, g_hClientCookie, sCookie, sizeof(sCookie));
+	GetClientCookie(client, g_hClientCookie, sCookie, sizeof(sCookie));
+	ColorStringToArray(sCookie, g_aGlowColor[client]);
 
-	if(StrEqual(sCookie, ""))
-	{
-		g_aGlowColor[client][0] = 255;
-		g_aGlowColor[client][1] = 255;
-		g_aGlowColor[client][2] = 255;
-	}
-	else
-		ColorStringToArray(sCookie, g_aGlowColor[client]);
+	GetClientCookie(client, g_hClientCookieRainbow, sCookie, sizeof(sCookie));
+	g_bRainbowEnabled[client] = StringToInt(sCookie) == 1;
+
+	GetClientCookie(client, g_hClientFrequency, sCookie, sizeof(sCookie));
+	g_aRainbowFrequency[client] = StringToFloat(sCookie);
 }
 
 public void OnClientDisconnect(int client)
 {
-	if(!client)
+	if(!client || !IsClientInGame(client))
 		return;
-	
-	if(IsClientInGame(client))
-	{
-		if(g_aGlowColor[client][0] == 255 &&
-			g_aGlowColor[client][1] == 255 &&
-			g_aGlowColor[client][2] == 255)
-		{
-			SetClientCookie(client, g_hClientCookie, "");
-		}
-		else
-		{
-			char sCookie[16];
-			FormatEx(sCookie, sizeof(sCookie), "%d %d %d",
-				g_aGlowColor[client][0],
-				g_aGlowColor[client][1],
-				g_aGlowColor[client][2]);
 
-			SetClientCookie(client, g_hClientCookie, sCookie);
-		}
-	}
+	char sCookie[16];
 
+	/* GLOW COLOR */
+	FormatEx(sCookie, sizeof(sCookie), "%d %d %d", g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
+	SetClientCookie(client, g_hClientCookie, sCookie);
+
+	// Restore player default glowcolor
 	g_aGlowColor[client][0] = 255;
 	g_aGlowColor[client][1] = 255;
 	g_aGlowColor[client][2] = 255;
+	ApplyGlowColor(client);
 
-	if(g_aRainbowFrequency[client])
-		SDKUnhook(client, SDKHook_PostThinkPost, OnPostThinkPost);
-	g_aRainbowFrequency[client] = 0.0;
+	/* RAINBOW */
+	FormatEx(sCookie, sizeof(sCookie), "%d", g_bRainbowEnabled[client]);
+	SetClientCookie(client, g_hClientCookieRainbow, sCookie);
+
+	FormatEx(sCookie, sizeof(sCookie), "%0.1f", g_aRainbowFrequency[client]);
+	SetClientCookie(client, g_hClientFrequency, sCookie);
+
+	StopRainbow(client);
 }
 
 public void OnPostThinkPost(int client)
@@ -298,11 +298,7 @@ public Action Command_GlowColors(int client, int args)
 
 	if(GetCmdReplySource() == SM_REPLY_TO_CHAT)
 	{
-		if(g_aRainbowFrequency[client])
-		{
-			SDKUnhook(client, SDKHook_PostThinkPost, OnPostThinkPost);
-			g_aRainbowFrequency[client] = 0.0;
-		}
+		StopRainbow(client);
 		CPrintToChat(client, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);	
 	}
 	return Plugin_Handled;
@@ -320,25 +316,13 @@ public Action Command_Rainbow(int client, int args)
 
 	if(!Frequency || (args < 1 && g_aRainbowFrequency[client]))
 	{
-		if(g_aRainbowFrequency[client])
-			SDKUnhook(client, SDKHook_PostThinkPost, OnPostThinkPost);
-
-		g_aRainbowFrequency[client] = 0.0;
+		StopRainbow(client);
 		CPrintToChat(client, "%s{olive} Disabled {default}rainbow glowcolors.", CHAT_PREFIX);
-
 		ApplyGlowColor(client);
 	}
 	else
 	{
-		float MinFrequency = g_Cvar_MinRainbowFrequency.FloatValue;
-
-		if (Frequency < MinFrequency)
-			Frequency = MinFrequency;
-
-		if(!g_aRainbowFrequency[client])
-			SDKHook(client, SDKHook_PostThinkPost, OnPostThinkPost);
-
-		g_aRainbowFrequency[client] = Frequency;
+		StartRainbow(client, Frequency);
 		CPrintToChat(client, "%s{olive} Enabled {default}rainbow glowcolors. (Frequency = {olive}%0.1f{default})", CHAT_PREFIX, Frequency);
 	}
 	return Plugin_Handled;
@@ -346,12 +330,12 @@ public Action Command_Rainbow(int client, int args)
 
 void DisplayGlowColorMenu(int client)
 {
-	if(CheckCommandAccess(client, "", ADMFLAG_CUSTOM2))
+	bool bAccess = CheckCommandAccess(client, "", ADMFLAG_CUSTOM2);
+	if(bAccess)
 	{
 		g_GlowColorsMenu.Display(client, MENU_TIME_FOREVER);
 	}
-	
-	if(!CheckCommandAccess(client, "", ADMFLAG_CUSTOM2))
+	else
 	{
 		if(IsClientInGame(client) && !IsPlayerAlive(client))
 		{		
@@ -386,15 +370,25 @@ public int MenuHandler_GlowColorsMenu(Menu menu, MenuAction action, int param1, 
 				(g_aGlowColor[param1][1] << 8) +
 				(g_aGlowColor[param1][2] << 0);
 
-			if(g_aRainbowFrequency[param1])
-				SDKUnhook(param1, SDKHook_PostThinkPost, OnPostThinkPost);
-			g_aRainbowFrequency[param1] = 0.0;
+			StopRainbow(param1);
 
 			ApplyGlowColor(param1);
 			CPrintToChat(param1, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);
 		}
 	}
 	return 0;
+}
+
+// We do that with Hook to prevent get this functions run during map change
+public void Event_ClientDisconnect(Handle event, const char[] name, bool dontBroadcast)
+{
+	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	if(!client)
+		return;
+
+	g_bRainbowEnabled[client] = false;
+
+	OnClientDisconnect(client);
 }
 
 public void Event_ApplyGlowcolor(Event event, const char[] name, bool dontBroadcast)
@@ -410,7 +404,12 @@ public Action Timer_ApplyGlowColor(Handle timer, int serial)
 {
 	int client = GetClientFromSerial(serial);
 	if(client)
-		ApplyGlowColor(client);
+	{
+		if (g_bRainbowEnabled[client])
+			StartRainbow(client, g_aRainbowFrequency[client]);
+		else
+			ApplyGlowColor(client);
+	}
 	return Plugin_Continue;
 }
 
@@ -463,6 +462,31 @@ bool ApplyGlowColor(int client)
 	return Ret;
 }
 
+stock void StopRainbow(int client)
+{
+	if(g_aRainbowFrequency[client])
+	{
+		g_bRainbowEnabled[client] = false;
+		SDKUnhook(client, SDKHook_PostThinkPost, OnPostThinkPost);
+		g_aRainbowFrequency[client] = 0.0;
+	}
+}
+
+stock void StartRainbow(int client, float Frequency)
+{
+	float MinFrequency = g_Cvar_MinRainbowFrequency.FloatValue;
+	float MaxFrequency = g_Cvar_MaxRainbowFrequency.FloatValue;
+
+	if (Frequency < MinFrequency)
+		Frequency = MinFrequency;
+	else if (Frequency > MaxFrequency)
+		Frequency = MaxFrequency;
+
+	g_aRainbowFrequency[client] = Frequency;
+	SDKHook(client, SDKHook_PostThinkPost, OnPostThinkPost);
+
+	g_bRainbowEnabled[client] = true;
+}
 stock void ToolsGetEntityColor(int entity, int aColor[4])
 {
 	static bool s_GotConfig = false;
