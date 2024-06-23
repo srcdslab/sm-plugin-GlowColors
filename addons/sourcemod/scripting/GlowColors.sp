@@ -19,7 +19,7 @@ public Plugin myinfo =
 	name = "GlowColors & Master Chief colors",
 	author = "BotoX, inGame, .Rushaway",
 	description = "Change your clients colors.",
-	version = "1.3.2",
+	version = "1.3.3",
 	url = ""
 }
 
@@ -204,7 +204,7 @@ void ReadClientCookies(int client)
 
 public void OnClientDisconnect(int client)
 {
-	if(!client || !IsClientInGame(client))
+	if(!client || !IsClientInGame(client) || IsFakeClient(client))
 		return;
 
 	char sCookie[16];
