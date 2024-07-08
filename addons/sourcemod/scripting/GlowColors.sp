@@ -19,7 +19,7 @@ public Plugin myinfo =
 	name = "GlowColors & Master Chief colors",
 	author = "BotoX, inGame, .Rushaway",
 	description = "Change your clients colors.",
-	version = "1.3.3",
+	version = "1.3.4",
 	url = ""
 }
 
@@ -212,12 +212,6 @@ public void OnClientDisconnect(int client)
 	/* GLOW COLOR */
 	FormatEx(sCookie, sizeof(sCookie), "%d %d %d", g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 	SetClientCookie(client, g_hClientCookie, sCookie);
-
-	// Restore player default glowcolor
-	g_aGlowColor[client][0] = 255;
-	g_aGlowColor[client][1] = 255;
-	g_aGlowColor[client][2] = 255;
-	ApplyGlowColor(client);
 
 	/* RAINBOW */
 	FormatEx(sCookie, sizeof(sCookie), "%d", g_bRainbowEnabled[client]);
