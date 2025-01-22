@@ -3,7 +3,43 @@
 #endif
 #define _glowcolors_included
 
+#define GlowColors_V_MAJOR   1
+#define GlowColors_V_MINOR   4
+#define GlowColors_V_PATCH   0
+
+#define GlowColors_VERSION   "1.4.0"
+
+/**
+ * Called when the plugin becomes available.
+ * 
+ * @noreturn
+ */
+forward void GlowColors_OnPluginOK();
+
+/**
+ * Called when the plugin becomes unavailable.
+ * This can happen when the plugin is reloaded or unloaded.
+ * 
+ * @noreturn
+ */
+forward void GlowColors_OnPluginNotOK();
+
+/**
+ * Enables rainbow glow effect for a client.
+ *
+ * @param client    Client index
+ * @noreturn
+ * @error          Invalid client index or client not in game
+ */
 native void GlowColors_SetRainbow(int client);
+
+/**
+ * Disables rainbow glow effect for a client.
+ *
+ * @param client    Client index
+ * @noreturn
+ * @error          Invalid client index or client not in game
+ */
 native void GlowColors_RemoveRainbow(int client);
 
 public SharedPlugin __pl_glowcolors = 
