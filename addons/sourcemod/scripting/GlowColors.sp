@@ -24,9 +24,6 @@ public Plugin myinfo =
 	url = "https://github.com/srcdslab/sm-plugin-GlowColors"
 }
 
-GlobalForward g_hForward_StatusOK;
-GlobalForward g_hForward_StatusNotOK;
-
 Menu g_GlowColorsMenu;
 Handle g_hClientCookie = INVALID_HANDLE;
 Handle g_hClientCookieRainbow = INVALID_HANDLE;
@@ -47,9 +44,6 @@ bool g_Plugin_ZR = false;
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
 	CreateNative("GlowColors_SetRainbow", Native_SetRainbow);
 	CreateNative("GlowColors_RemoveRainbow", Native_RemoveRainbow);
-
-	g_hForward_StatusOK = CreateGlobalForward("GlowColors_OnPluginOK", ET_Ignore);
-	g_hForward_StatusNotOK = CreateGlobalForward("GlowColors_OnPluginNotOK", ET_Ignore);
 
 	RegPluginLibrary("glowcolors");
 	return APLRes_Success;
@@ -102,17 +96,7 @@ public void OnPluginStart()
 
 public void OnAllPluginsLoaded()
 {
-	SendForward_Available();
-
 	g_Plugin_ZR = LibraryExists("zombiereloaded");
-}
-
-public void OnPluginPauseChange(bool pause)
-{
-	if (pause)
-		SendForward_NotAvailable();
-	else
-		SendForward_Available();
 }
 
 public void OnLibraryAdded(const char[] sName)
@@ -129,8 +113,6 @@ public void OnLibraryRemoved(const char[] sName)
 
 public void OnPluginEnd()
 {
-	SendForward_NotAvailable();
-
 	for(int client = 1; client <= MaxClients; client++)
 	{
 		if(IsClientInGame(client) && !IsFakeClient(client) && AreClientCookiesCached(client))
@@ -576,16 +558,4 @@ public int Native_RemoveRainbow(Handle hPlugins, int numParams) {
 
 	g_aRainbowFrequency[client] = 0.0;
 	return 0;
-}
-
-stock void SendForward_Available()
-{
-	Call_StartForward(g_hForward_StatusOK);
-	Call_Finish();
-}
-
-stock void SendForward_NotAvailable()
-{
-	Call_StartForward(g_hForward_StatusNotOK);
-	Call_Finish();
 }
