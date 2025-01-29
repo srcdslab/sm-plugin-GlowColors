@@ -4,6 +4,7 @@
 #include <clientprefs>
 #include <regex>
 #include <multicolors>
+#include <glowcolors>
 
 #undef REQUIRE_PLUGIN
 #tryinclude <zombiereloaded>
@@ -19,8 +20,8 @@ public Plugin myinfo =
 	name = "GlowColors & Master Chief colors",
 	author = "BotoX, inGame, .Rushaway",
 	description = "Change your clients colors.",
-	version = "1.3.4",
-	url = ""
+	version = GlowColors_VERSION,
+	url = "https://github.com/srcdslab/sm-plugin-GlowColors"
 }
 
 Menu g_GlowColorsMenu;
