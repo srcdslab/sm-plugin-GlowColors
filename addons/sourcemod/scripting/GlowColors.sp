@@ -36,10 +36,12 @@ Regex g_Regex_HEX;
 
 int g_aGlowColor[MAXPLAYERS + 1][3];
 float g_aRainbowFrequency[MAXPLAYERS + 1];
+bool g_bLate = false;
 bool g_bRainbowEnabled[MAXPLAYERS+1] = {false,...};
 bool g_Plugin_ZR = false;
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
+	g_bLate = late;
 	CreateNative("GlowColors_SetRainbow", Native_SetRainbow);
 	CreateNative("GlowColors_RemoveRainbow", Native_RemoveRainbow);
 
@@ -76,8 +78,13 @@ public void OnPluginStart()
 	g_Cvar_MinRainbowFrequency = CreateConVar("sm_glowcolors_minrainbowfrequency", "1.0", "Lowest frequency value for rainbow glowcolors before auto-clamp.", 0, true, 0.1);
 	g_Cvar_MaxRainbowFrequency = CreateConVar("sm_glowcolors_maxrainbowfrequency", "10.0", "Highest frequency value for rainbow glowcolors before auto-clamp.", 0, true, 0.1);
 
+	AutoExecConfig(true);
+
 	LoadConfig();
 	LoadTranslations("GlowColors.phrases");
+
+	if (!g_bLate)
+		return;
 
 	for(int client = 1; client <= MaxClients; client++)
 	{
@@ -87,7 +94,7 @@ public void OnPluginStart()
 		}
 	}
 
-	AutoExecConfig(true);
+	g_bLate = false;
 }
 
 public void OnAllPluginsLoaded()
