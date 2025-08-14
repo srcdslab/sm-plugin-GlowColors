@@ -5,7 +5,7 @@
 
 #define GlowColors_V_MAJOR   "1"
 #define GlowColors_V_MINOR   "4"
-#define GlowColors_V_PATCH   "2"
+#define GlowColors_V_PATCH   "1"
 
 #define GlowColors_VERSION   GlowColors_V_MAJOR..."."...GlowColors_V_MINOR..."."...GlowColors_V_PATCH
 
