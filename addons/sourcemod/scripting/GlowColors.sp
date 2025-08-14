@@ -26,8 +26,6 @@ public Plugin myinfo =
 
 Menu g_GlowColorsMenu;
 Handle g_hClientCookie = INVALID_HANDLE;
-Handle g_hClientCookieRainbow = INVALID_HANDLE;
-Handle g_hClientFrequency = INVALID_HANDLE;
 Handle g_Cvar_PluginTimer = INVALID_HANDLE;
 
 ConVar g_Cvar_MinBrightness;
@@ -38,10 +36,12 @@ Regex g_Regex_HEX;
 
 int g_aGlowColor[MAXPLAYERS + 1][3];
 float g_aRainbowFrequency[MAXPLAYERS + 1];
+bool g_bLate = false;
 bool g_bRainbowEnabled[MAXPLAYERS+1] = {false,...};
 bool g_Plugin_ZR = false;
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
+	g_bLate = late;
 	CreateNative("GlowColors_SetRainbow", Native_SetRainbow);
 	CreateNative("GlowColors_RemoveRainbow", Native_RemoveRainbow);
 
@@ -51,9 +51,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
-	g_hClientCookie = RegClientCookie("glowcolor", "Player glowcolor", CookieAccess_Protected);
-	g_hClientCookieRainbow = RegClientCookie("rainbow", "Rainbow status", CookieAccess_Protected);
-	g_hClientFrequency = RegClientCookie("rainbow_frequency", "Rainbow frequency", CookieAccess_Protected);
+	g_hClientCookie = RegClientCookie("glowcolor_data", "Player glowcolor data (RGB|Rainbow|Frequency)", CookieAccess_Protected);
 
 	g_Regex_RGB = CompileRegex("^(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\s+){2}([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$");
 	g_Regex_HEX = CompileRegex("^(#?)([A-Fa-f0-9]{6})$");
@@ -80,8 +78,13 @@ public void OnPluginStart()
 	g_Cvar_MinRainbowFrequency = CreateConVar("sm_glowcolors_minrainbowfrequency", "1.0", "Lowest frequency value for rainbow glowcolors before auto-clamp.", 0, true, 0.1);
 	g_Cvar_MaxRainbowFrequency = CreateConVar("sm_glowcolors_maxrainbowfrequency", "10.0", "Highest frequency value for rainbow glowcolors before auto-clamp.", 0, true, 0.1);
 
+	AutoExecConfig(true);
+
 	LoadConfig();
 	LoadTranslations("GlowColors.phrases");
+
+	if (!g_bLate)
+		return;
 
 	for(int client = 1; client <= MaxClients; client++)
 	{
@@ -91,7 +94,7 @@ public void OnPluginStart()
 		}
 	}
 
-	AutoExecConfig(true);
+	g_bLate = false;
 }
 
 public void OnAllPluginsLoaded()
@@ -122,9 +125,7 @@ public void OnPluginEnd()
 	}
 
 	delete g_GlowColorsMenu;
-	CloseHandle(g_hClientCookie);
-	CloseHandle(g_hClientCookieRainbow);
-	CloseHandle(g_hClientFrequency);
+	delete g_hClientCookie;
 }
 
 void LoadConfig()
@@ -183,8 +184,41 @@ public void OnClientCookiesCached(int client)
 
 public void OnClientPostAdminCheck(int client)
 {
+	if (!g_bLate)
+		return;
+
 	if(AreClientCookiesCached(client))
 		ReadClientCookies(client);
+}
+
+void ParseClientCookie(int client, int &red, int &green, int &blue, bool &rainbowEnabled, float &rainbowFrequency)
+{
+	char sCookie[64];
+	GetClientCookie(client, g_hClientCookie, sCookie, sizeof(sCookie));
+
+	// Parse the cookie data: "%d|%d|%d|%d|%0.1f" (R|G|B|Rainbow|Frequency)
+	if (sCookie[0] != '\0')
+	{
+		char sParts[5][16];
+		int parts = ExplodeString(sCookie, "|", sParts, sizeof(sParts), sizeof(sParts[]));
+
+		if(parts >= 5)
+		{
+			red = StringToInt(sParts[0]);
+			green = StringToInt(sParts[1]);
+			blue = StringToInt(sParts[2]);
+			rainbowEnabled = StringToInt(sParts[3]) == 1;
+			rainbowFrequency = StringToFloat(sParts[4]);
+			return;
+		}
+	}
+
+	// Default values (used for empty cookie or invalid format)
+	red = 255;
+	green = 255;
+	blue = 255;
+	rainbowEnabled = false;
+	rainbowFrequency = 0.0;
 }
 
 void ReadClientCookies(int client)
@@ -192,34 +226,42 @@ void ReadClientCookies(int client)
 	if(!client || !IsClientInGame(client))
 		return;
 	
-	char sCookie[16];
-	GetClientCookie(client, g_hClientCookie, sCookie, sizeof(sCookie));
-	ColorStringToArray(sCookie, g_aGlowColor[client]);
+	ParseClientCookie(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2], g_bRainbowEnabled[client], g_aRainbowFrequency[client]);
+}
 
-	GetClientCookie(client, g_hClientCookieRainbow, sCookie, sizeof(sCookie));
-	g_bRainbowEnabled[client] = StringToInt(sCookie) == 1;
+void SaveClientCookies(int client)
+{
+	// Read current cookie values
+	int currentRed, currentGreen, currentBlue;
+	bool currentRainbowEnabled;
+	float currentRainbowFrequency;
+	ParseClientCookie(client, currentRed, currentGreen, currentBlue, currentRainbowEnabled, currentRainbowFrequency);
 
-	GetClientCookie(client, g_hClientFrequency, sCookie, sizeof(sCookie));
-	g_aRainbowFrequency[client] = StringToFloat(sCookie);
+	// Check if values have changed
+	bool colorChanged = (g_aGlowColor[client][0] != currentRed || g_aGlowColor[client][1] != currentGreen || g_aGlowColor[client][2] != currentBlue);
+	bool rainbowChanged = g_bRainbowEnabled[client] != currentRainbowEnabled;
+	bool frequencyChanged = g_aRainbowFrequency[client] != currentRainbowFrequency;
+
+	// If no values have changed, no need to save
+	if (!colorChanged && !rainbowChanged && !frequencyChanged) {
+		return;
+	}
+
+	// Otherwise, save the chain format
+	char sCookie[64];
+	FormatEx(sCookie, sizeof(sCookie), "%d|%d|%d|%d|%0.1f", 
+		g_aGlowColor[client][0], 
+		g_aGlowColor[client][1], 
+		g_aGlowColor[client][2], 
+		g_bRainbowEnabled[client] ? 1 : 0, 
+		g_aRainbowFrequency[client]);
+	SetClientCookie(client, g_hClientCookie, sCookie);
 }
 
 public void OnClientDisconnect(int client)
 {
 	if(!client || !IsClientInGame(client) || IsFakeClient(client))
 		return;
-
-	char sCookie[16];
-
-	/* GLOW COLOR */
-	FormatEx(sCookie, sizeof(sCookie), "%d %d %d", g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
-	SetClientCookie(client, g_hClientCookie, sCookie);
-
-	/* RAINBOW */
-	FormatEx(sCookie, sizeof(sCookie), "%d", g_bRainbowEnabled[client]);
-	SetClientCookie(client, g_hClientCookieRainbow, sCookie);
-
-	FormatEx(sCookie, sizeof(sCookie), "%0.1f", g_aRainbowFrequency[client]);
-	SetClientCookie(client, g_hClientFrequency, sCookie);
 
 	StopRainbow(client);
 }
@@ -291,6 +333,8 @@ public Action Command_GlowColors(int client, int args)
 	if(!ApplyGlowColor(client))
 		return Plugin_Handled;
 
+	SaveClientCookies(client);
+
 	if(GetCmdReplySource() == SM_REPLY_TO_CHAT)
 	{
 		StopRainbow(client);
@@ -320,6 +364,8 @@ public Action Command_Rainbow(int client, int args)
 		StartRainbow(client, Frequency);
 		CPrintToChat(client, "%s{olive} Enabled {default}rainbow glowcolors. (Frequency = {olive}%0.1f{default})", CHAT_PREFIX, Frequency);
 	}
+	
+	SaveClientCookies(client);
 	return Plugin_Handled;
 }
 
@@ -368,6 +414,7 @@ public int MenuHandler_GlowColorsMenu(Menu menu, MenuAction action, int param1, 
 			StopRainbow(param1);
 
 			ApplyGlowColor(param1);
+			SaveClientCookies(param1);
 			CPrintToChat(param1, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);
 		}
 	}
@@ -382,7 +429,6 @@ public void Event_ClientDisconnect(Handle event, const char[] name, bool dontBro
 		return;
 
 	g_bRainbowEnabled[client] = false;
-
 	OnClientDisconnect(client);
 }
 
@@ -433,6 +479,7 @@ bool ApplyGlowColor(int client)
 		g_aGlowColor[client][0] = 255;
 		g_aGlowColor[client][1] = 255;
 		g_aGlowColor[client][2] = 255;
+		SaveClientCookies(client);
 		Ret = false;
 	}
 
@@ -491,7 +538,7 @@ stock void ToolsGetEntityColor(int entity, int aColor[4])
 	{
 		Handle GameConf = LoadGameConfigFile("core.games");
 		bool Exists = GameConfGetKeyValue(GameConf, "m_clrRender", s_sProp, sizeof(s_sProp));
-		CloseHandle(GameConf);
+		delete GameConf;
 
 		if(!Exists)
 			strcopy(s_sProp, sizeof(s_sProp), "m_clrRender");
