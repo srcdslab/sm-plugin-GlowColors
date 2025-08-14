@@ -601,7 +601,7 @@ public int Native_SetRainbow(Handle hPlugins, int numParams) {
 
 	float frequency = 1.0;
 	if (numParams >= 2)
-		frequency = GetNativeCellAsFloat(2);
+		frequency = view_as<float>(GetNativeCell(2));
 
 	StartRainbow(client, frequency);
 	return 0;
