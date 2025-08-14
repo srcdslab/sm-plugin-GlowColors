@@ -125,7 +125,7 @@ public void OnPluginEnd()
 	}
 
 	delete g_GlowColorsMenu;
-	CloseHandle(g_hClientCookie);
+	delete g_hClientCookie;
 }
 
 void LoadConfig()
@@ -184,6 +184,9 @@ public void OnClientCookiesCached(int client)
 
 public void OnClientPostAdminCheck(int client)
 {
+	if (!g_bLate)
+		return;
+
 	if(AreClientCookiesCached(client))
 		ReadClientCookies(client);
 }
@@ -535,7 +538,7 @@ stock void ToolsGetEntityColor(int entity, int aColor[4])
 	{
 		Handle GameConf = LoadGameConfigFile("core.games");
 		bool Exists = GameConfGetKeyValue(GameConf, "m_clrRender", s_sProp, sizeof(s_sProp));
-		CloseHandle(GameConf);
+		delete GameConf;
 
 		if(!Exists)
 			strcopy(s_sProp, sizeof(s_sProp), "m_clrRender");
