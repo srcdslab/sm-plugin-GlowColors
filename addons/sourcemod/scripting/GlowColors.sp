@@ -484,7 +484,7 @@ bool ApplyGlowColor(int client)
 	}
 
 
-	if(IsPlayerAlive(client) && CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) || CheckCommandAccess(client, "", ADMFLAG_ROOT))
+	if(IsPlayerAlive(client) && (CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) || CheckCommandAccess(client, "", ADMFLAG_ROOT)))
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 
 #if defined _zr_included
@@ -589,20 +589,31 @@ stock int ColorBrightness(int Red, int Green, int Blue)
 	// http://www.nbdtech.com/Blog/archive/2008/04/27/Calculating-the-Perceived-Brightness-of-a-Color.aspx
 	return RoundToFloor(SquareRoot(
 		Red * Red * 0.241 +
-		Green * Green + 0.691 +
-		Blue * Blue + 0.068));
+		Green * Green * 0.691 +
+		Blue * Blue * 0.068));
 }
 
 public int Native_SetRainbow(Handle hPlugins, int numParams) {
 	int client = GetNativeCell(1);
 
-	g_aRainbowFrequency[client] = 1.0;
+	if (client < 1 || client > MaxClients || !IsClientInGame(client))
+		ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index (%d)", client);
+
+	float frequency = 1.0;
+	if (numParams >= 2)
+		frequency = GetNativeCellAsFloat(2);
+
+	StartRainbow(client, frequency);
 	return 0;
 }
 
 public int Native_RemoveRainbow(Handle hPlugins, int numParams) {
 	int client = GetNativeCell(1);
 
-	g_aRainbowFrequency[client] = 0.0;
+	if (client < 1 || client > MaxClients || !IsClientInGame(client))
+		ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index (%d)", client);
+
+	StopRainbow(client);
+	ApplyGlowColor(client);
 	return 0;
 }
