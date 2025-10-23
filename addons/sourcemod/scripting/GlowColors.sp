@@ -88,7 +88,7 @@ public void OnPluginStart()
 
 	for(int client = 1; client <= MaxClients; client++)
 	{
-		if(IsClientInGame(client) && !IsFakeClient(client) && AreClientCookiesCached(client))
+		if (IsClientInGame(client) && !IsFakeClient(client) && AreClientCookiesCached(client))
 		{
 			ApplyGlowColor(client);
 		}
@@ -118,7 +118,7 @@ public void OnPluginEnd()
 {
 	for(int client = 1; client <= MaxClients; client++)
 	{
-		if(IsClientInGame(client) && !IsFakeClient(client) && AreClientCookiesCached(client))
+		if (IsClientInGame(client) && !IsFakeClient(client) && AreClientCookiesCached(client))
 		{
 			OnClientDisconnect(client);
 		}
@@ -132,22 +132,24 @@ void LoadConfig()
 {
 	char sConfigFile[PLATFORM_MAX_PATH];
 	BuildPath(Path_SM, sConfigFile, sizeof(sConfigFile), "configs/GlowColors.cfg");
-	if(!FileExists(sConfigFile))
+	if (!FileExists(sConfigFile))
 	{
 		SetFailState("Could not find config: \"%s\"", sConfigFile);
 	}
 
 	KeyValues Config = new KeyValues("GlowColors");
-	if(!Config.ImportFromFile(sConfigFile))
+	if (!Config.ImportFromFile(sConfigFile))
 	{
 		delete Config;
 		SetFailState("ImportFromFile() failed!");
 	}
-	if(!Config.GotoFirstSubKey(false))
+	if (!Config.GotoFirstSubKey(false))
 	{
 		delete Config;
 		SetFailState("GotoFirstSubKey() failed!");
 	}
+
+	delete g_GlowColorsMenu;
 
 	g_GlowColorsMenu = new Menu(MenuHandler_GlowColorsMenu, MenuAction_Select);
 	g_GlowColorsMenu.SetTitle("GlowColors");
@@ -164,7 +166,9 @@ void LoadConfig()
 
 		g_GlowColorsMenu.AddItem(sValue, sKey);
 	}
-	while(Config.GotoNextKey(false));
+	while (Config.GotoNextKey(false));
+	
+	delete Config;
 }
 
 public void OnClientConnected(int client)
@@ -178,7 +182,7 @@ public void OnClientConnected(int client)
 
 public void OnClientCookiesCached(int client)
 {
-	if(IsClientAuthorized(client))
+	if (IsClientAuthorized(client))
 		ReadClientCookies(client);
 }
 
@@ -187,7 +191,7 @@ public void OnClientPostAdminCheck(int client)
 	if (!g_bLate)
 		return;
 
-	if(AreClientCookiesCached(client))
+	if (AreClientCookiesCached(client))
 		ReadClientCookies(client);
 }
 
@@ -202,7 +206,7 @@ void ParseClientCookie(int client, int &red, int &green, int &blue, bool &rainbo
 		char sParts[5][16];
 		int parts = ExplodeString(sCookie, "|", sParts, sizeof(sParts), sizeof(sParts[]));
 
-		if(parts >= 5)
+		if (parts >= 5)
 		{
 			red = StringToInt(sParts[0]);
 			green = StringToInt(sParts[1]);
@@ -223,7 +227,7 @@ void ParseClientCookie(int client, int &red, int &green, int &blue, bool &rainbo
 
 void ReadClientCookies(int client)
 {
-	if(!client || !IsClientInGame(client))
+	if (!client || !IsClientInGame(client))
 		return;
 	
 	ParseClientCookie(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2], g_bRainbowEnabled[client], g_aRainbowFrequency[client]);
@@ -260,7 +264,7 @@ void SaveClientCookies(int client)
 
 public void OnClientDisconnect(int client)
 {
-	if(!client || !IsClientInGame(client) || IsFakeClient(client))
+	if (!client || !IsClientInGame(client) || IsFakeClient(client))
 		return;
 
 	StopRainbow(client);
@@ -280,7 +284,7 @@ public void OnPostThinkPost(int client)
 
 public Action Command_GlowColors(int client, int args)
 {
-	if(args < 1)
+	if (args < 1)
 	{
 		DisplayGlowColorMenu(client);
 		return Plugin_Handled;
@@ -288,12 +292,12 @@ public Action Command_GlowColors(int client, int args)
 
 	int Color;
 
-	if(args == 1)
+	if (args == 1)
 	{
 		char sColorString[32];
 		GetCmdArgString(sColorString, sizeof(sColorString));
 
-		if(!IsValidHex(sColorString))
+		if (!IsValidHex(sColorString))
 		{
 			CPrintToChat(client, "%s Invalid HEX color code supplied.", CHAT_PREFIX);
 			return Plugin_Handled;
@@ -305,12 +309,12 @@ public Action Command_GlowColors(int client, int args)
 		g_aGlowColor[client][1] = (Color >> 8) & 0xFF;
 		g_aGlowColor[client][2] = (Color >> 0) & 0xFF;
 	}
-	else if(args == 3)
+	else if (args == 3)
 	{
 		char sColorString[32];
 		GetCmdArgString(sColorString, sizeof(sColorString));
 
-		if(!IsValidRGBNum(sColorString))
+		if (!IsValidRGBNum(sColorString))
 		{
 			CPrintToChat(client, "%s Invalid RGB color code supplied.", CHAT_PREFIX);
 			return Plugin_Handled;
@@ -330,12 +334,12 @@ public Action Command_GlowColors(int client, int args)
 		return Plugin_Handled;
 	}
 
-	if(!ApplyGlowColor(client))
+	if (!ApplyGlowColor(client))
 		return Plugin_Handled;
 
 	SaveClientCookies(client);
 
-	if(GetCmdReplySource() == SM_REPLY_TO_CHAT)
+	if (GetCmdReplySource() == SM_REPLY_TO_CHAT)
 	{
 		StopRainbow(client);
 		CPrintToChat(client, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);	
@@ -346,14 +350,14 @@ public Action Command_GlowColors(int client, int args)
 public Action Command_Rainbow(int client, int args)
 {
 	float Frequency = 1.0;
-	if(args >= 1)
+	if (args >= 1)
 	{
 		char sArg[32];
 		GetCmdArg(1, sArg, sizeof(sArg));
 		Frequency = StringToFloat(sArg);
 	}
 
-	if(!Frequency || (args < 1 && g_aRainbowFrequency[client]))
+	if (!Frequency || (args < 1 && g_aRainbowFrequency[client]))
 	{
 		StopRainbow(client);
 		CPrintToChat(client, "%s{olive} Disabled {default}rainbow glowcolors.", CHAT_PREFIX);
@@ -372,22 +376,22 @@ public Action Command_Rainbow(int client, int args)
 void DisplayGlowColorMenu(int client)
 {
 	bool bAccess = CheckCommandAccess(client, "", ADMFLAG_CUSTOM2);
-	if(bAccess)
+	if (bAccess)
 	{
 		g_GlowColorsMenu.Display(client, MENU_TIME_FOREVER);
 	}
 	else
 	{
-		if(IsClientInGame(client) && !IsPlayerAlive(client))
+		if (IsClientInGame(client) && !IsPlayerAlive(client))
 		{		
 			CPrintToChat(client, "%T", "NotAlive", client);
 		}
 #if defined _zr_included
-		else if(g_Plugin_ZR && IsClientInGame(client) && IsPlayerAlive(client) && ZR_IsClientZombie(client))
+		else if (g_Plugin_ZR && IsClientInGame(client) && IsPlayerAlive(client) && ZR_IsClientZombie(client))
 		{	
 			CPrintToChat(client, "%T", "Zombie", client);
 		}
-		else if(g_Plugin_ZR && ZR_GetActiveClass(client) != ZR_GetClassByName("Master Chief") && !ZR_IsClientZombie(client))
+		else if (g_Plugin_ZR && ZR_GetActiveClass(client) != ZR_GetClassByName("Master Chief") && !ZR_IsClientZombie(client))
 		{	
 			CPrintToChat(client, "%T", "WrongModel", client);
 		}
@@ -425,7 +429,7 @@ public int MenuHandler_GlowColorsMenu(Menu menu, MenuAction action, int param1, 
 public void Event_ClientDisconnect(Handle event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(!client)
+	if (!client)
 		return;
 
 	g_bRainbowEnabled[client] = false;
@@ -435,7 +439,7 @@ public void Event_ClientDisconnect(Handle event, const char[] name, bool dontBro
 public void Event_ApplyGlowcolor(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if(!client)
+	if (!client)
 		return;
 
 	CreateTimer(GetConVarFloat(g_Cvar_PluginTimer), Timer_ApplyGlowColor, GetClientSerial(client), TIMER_FLAG_NO_MAPCHANGE);
@@ -444,7 +448,7 @@ public void Event_ApplyGlowcolor(Event event, const char[] name, bool dontBroadc
 public Action Timer_ApplyGlowColor(Handle timer, int serial)
 {
 	int client = GetClientFromSerial(serial);
-	if(client)
+	if (client)
 	{
 		if (g_bRainbowEnabled[client])
 			StartRainbow(client, g_aRainbowFrequency[client]);
@@ -466,12 +470,12 @@ public void ZR_OnClientHumanPost(int client, bool respawn, bool protect)
 
 bool ApplyGlowColor(int client)
 {
-	if(!IsClientInGame(client))
+	if (!IsClientInGame(client))
 		return false;
 
 	bool Ret = true;
 	int Brightness = ColorBrightness(g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
-	if(Brightness < g_Cvar_MinBrightness.IntValue)
+	if (Brightness < g_Cvar_MinBrightness.IntValue)
 	{
 		CPrintToChat(client, "%s Your glowcolor is too dark! (brightness = {red}%d{default}/255, allowed values are {green}> %d{default})", CHAT_PREFIX,
 			Brightness, g_Cvar_MinBrightness.IntValue -1 );
@@ -484,20 +488,20 @@ bool ApplyGlowColor(int client)
 	}
 
 
-	if(IsPlayerAlive(client) && (CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) || CheckCommandAccess(client, "", ADMFLAG_ROOT)))
+	if (IsPlayerAlive(client) && (CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) || CheckCommandAccess(client, "", ADMFLAG_ROOT)))
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 
 #if defined _zr_included
-	if(g_Plugin_ZR && IsPlayerAlive(client) && ZR_GetActiveClass(client) == ZR_GetClassByName("Master Chief"))
+	if (g_Plugin_ZR && IsPlayerAlive(client) && ZR_GetActiveClass(client) == ZR_GetClassByName("Master Chief"))
 #else
-	if(IsPlayerAlive(client))
+	if (IsPlayerAlive(client))
 #endif
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 
 #if defined _zr_included
-	if(g_Plugin_ZR && IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) && ZR_IsClientZombie(client))
+	if (g_Plugin_ZR && IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) && ZR_IsClientZombie(client))
 #else
-	if(IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2))
+	if (IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2))
 #endif
 		ToolsSetEntityColor(client, 255, 255, 255);
 
@@ -506,7 +510,7 @@ bool ApplyGlowColor(int client)
 
 stock void StopRainbow(int client)
 {
-	if(g_aRainbowFrequency[client])
+	if (g_aRainbowFrequency[client])
 	{
 		g_bRainbowEnabled[client] = false;
 		SDKUnhook(client, SDKHook_PostThinkPost, OnPostThinkPost);
@@ -534,13 +538,13 @@ stock void ToolsGetEntityColor(int entity, int aColor[4])
 	static bool s_GotConfig = false;
 	static char s_sProp[32];
 
-	if(!s_GotConfig)
+	if (!s_GotConfig)
 	{
 		Handle GameConf = LoadGameConfigFile("core.games");
 		bool Exists = GameConfGetKeyValue(GameConf, "m_clrRender", s_sProp, sizeof(s_sProp));
 		delete GameConf;
 
-		if(!Exists)
+		if (!Exists)
 			strcopy(s_sProp, sizeof(s_sProp), "m_clrRender");
 
 		s_GotConfig = true;
@@ -572,14 +576,14 @@ stock void ColorStringToArray(const char[] sColorString, int aColor[3])
 
 stock bool IsValidRGBNum(char[] sString)
 {
-	if(g_Regex_RGB.Match(sString) > 0)
+	if (g_Regex_RGB.Match(sString) > 0)
 		return true;
 	return false;
 }
 
 stock bool IsValidHex(char[] sString)
 {
-	if(g_Regex_HEX.Match(sString) > 0)
+	if (g_Regex_HEX.Match(sString) > 0)
 		return true;
 	return false;
 }
