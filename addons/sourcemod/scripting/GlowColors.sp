@@ -68,6 +68,7 @@ public void OnPluginStart()
 	RegConsoleCmd("sm_mccmenu", Command_GlowColors, "Change your MasterChief color.");
 
 	RegAdminCmd("sm_rainbow", Command_Rainbow, ADMFLAG_CUSTOM1, "Enable rainbow glowcolors. sm_rainbow [frequency]");
+	RegAdminCmd("sm_glowcolors_reload", Command_ReloadConfig, ADMFLAG_ROOT, "Reload the GlowColors configuration file.");
 
 	HookEvent("player_disconnect", Event_ClientDisconnect, EventHookMode_Pre);
 	HookEvent("player_spawn", Event_ApplyGlowcolor, EventHookMode_Post);
@@ -169,6 +170,15 @@ void LoadConfig()
 	while (Config.GotoNextKey(false));
 	
 	delete Config;
+}
+
+public Action Command_ReloadConfig(int client, int args)
+{
+	CReplyToCommand(client, "%s Attempting to reload configuration...", CHAT_PREFIX);
+	LoadConfig();
+
+	CReplyToCommand(client, "%s Configuration file reloaded successfully.", CHAT_PREFIX);
+	return Plugin_Handled;
 }
 
 public void OnClientConnected(int client)
