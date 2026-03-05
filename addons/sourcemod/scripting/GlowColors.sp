@@ -25,8 +25,8 @@ public Plugin myinfo =
 }
 
 Menu g_GlowColorsMenu;
-Handle g_hClientCookie = INVALID_HANDLE;
-Handle g_Cvar_PluginTimer = INVALID_HANDLE;
+Cookie g_hClientCookie;
+ConVar g_Cvar_PluginTimer;
 
 ConVar g_Cvar_MinBrightness;
 ConVar g_Cvar_MinRainbowFrequency;
@@ -40,7 +40,8 @@ bool g_bLate = false;
 bool g_bRainbowEnabled[MAXPLAYERS+1] = {false,...};
 bool g_Plugin_ZR = false;
 
-public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max) {
+public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+{
 	g_bLate = late;
 	CreateNative("GlowColors_SetRainbow", Native_SetRainbow);
 	CreateNative("GlowColors_RemoveRainbow", Native_RemoveRainbow);
@@ -51,7 +52,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnPluginStart()
 {
-	g_hClientCookie = RegClientCookie("glowcolor_data", "Player glowcolor data (RGB|Rainbow|Frequency)", CookieAccess_Protected);
+	g_hClientCookie = new Cookie("glowcolor_data", "Player glowcolor data (RGB|Rainbow|Frequency)", CookieAccess_Protected);
 
 	g_Regex_RGB = CompileRegex("^(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\s+){2}([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$");
 	g_Regex_HEX = CompileRegex("^(#?)([A-Fa-f0-9]{6})$");
@@ -70,9 +71,8 @@ public void OnPluginStart()
 	RegAdminCmd("sm_rainbow", Command_Rainbow, ADMFLAG_CUSTOM1, "Enable rainbow glowcolors. sm_rainbow [frequency]");
 	RegAdminCmd("sm_glowcolors_reload", Command_ReloadConfig, ADMFLAG_ROOT, "Reload the GlowColors configuration file.");
 
-	HookEvent("player_disconnect", Event_ClientDisconnect, EventHookMode_Pre);
-	HookEvent("player_spawn", Event_ApplyGlowcolor, EventHookMode_Post);
-	HookEvent("player_team", Event_ApplyGlowcolor, EventHookMode_Post);
+	HookEvent("player_spawn", Event_ApplyGlowcolor);
+	HookEvent("player_team", Event_ApplyGlowcolor);
 
 	g_Cvar_MinBrightness = CreateConVar("sm_glowcolor_minbrightness", "100", "Lowest brightness value for glowcolor.", 0, true, 0.0, true, 255.0);
 	g_Cvar_PluginTimer = CreateConVar("sm_glowcolors_timer", "5.0", "When the colors should spawning again (in seconds)");
@@ -89,8 +89,10 @@ public void OnPluginStart()
 
 	for(int client = 1; client <= MaxClients; client++)
 	{
-		if (IsClientInGame(client) && !IsFakeClient(client) && AreClientCookiesCached(client))
+		if (IsClientInGame(client) && AreClientCookiesCached(client))
 		{
+			OnClientConnected(client);
+			OnClientCookiesCached(client);
 			ApplyGlowColor(client);
 		}
 	}
@@ -113,20 +115,6 @@ public void OnLibraryRemoved(const char[] sName)
 {
 	if (strcmp(sName, "zombiereloaded", false) == 0)
 		g_Plugin_ZR = false;
-}
-
-public void OnPluginEnd()
-{
-	for(int client = 1; client <= MaxClients; client++)
-	{
-		if (IsClientInGame(client) && !IsFakeClient(client) && AreClientCookiesCached(client))
-		{
-			OnClientDisconnect(client);
-		}
-	}
-
-	delete g_GlowColorsMenu;
-	delete g_hClientCookie;
 }
 
 void LoadConfig()
@@ -192,23 +180,13 @@ public void OnClientConnected(int client)
 
 public void OnClientCookiesCached(int client)
 {
-	if (IsClientAuthorized(client))
-		ReadClientCookies(client);
-}
-
-public void OnClientPostAdminCheck(int client)
-{
-	if (!g_bLate)
-		return;
-
-	if (AreClientCookiesCached(client))
-		ReadClientCookies(client);
+	ParseClientCookie(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2], g_bRainbowEnabled[client], g_aRainbowFrequency[client]);
 }
 
 void ParseClientCookie(int client, int &red, int &green, int &blue, bool &rainbowEnabled, float &rainbowFrequency)
 {
 	char sCookie[64];
-	GetClientCookie(client, g_hClientCookie, sCookie, sizeof(sCookie));
+	g_hClientCookie.Get(client, sCookie, sizeof(sCookie));
 
 	// Parse the cookie data: "%d|%d|%d|%d|%0.1f" (R|G|B|Rainbow|Frequency)
 	if (sCookie[0] != '\0')
@@ -233,14 +211,6 @@ void ParseClientCookie(int client, int &red, int &green, int &blue, bool &rainbo
 	blue = 255;
 	rainbowEnabled = false;
 	rainbowFrequency = 0.0;
-}
-
-void ReadClientCookies(int client)
-{
-	if (!client || !IsClientInGame(client))
-		return;
-	
-	ParseClientCookie(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2], g_bRainbowEnabled[client], g_aRainbowFrequency[client]);
 }
 
 void SaveClientCookies(int client)
@@ -269,15 +239,7 @@ void SaveClientCookies(int client)
 		g_aGlowColor[client][2], 
 		g_bRainbowEnabled[client] ? 1 : 0, 
 		g_aRainbowFrequency[client]);
-	SetClientCookie(client, g_hClientCookie, sCookie);
-}
-
-public void OnClientDisconnect(int client)
-{
-	if (!client || !IsClientInGame(client) || IsFakeClient(client))
-		return;
-
-	StopRainbow(client);
+	g_hClientCookie.Set(client, sCookie);
 }
 
 public void OnPostThinkPost(int client)
@@ -294,6 +256,9 @@ public void OnPostThinkPost(int client)
 
 public Action Command_GlowColors(int client, int args)
 {
+	if (!client)
+		return Plugin_Handled;
+		
 	if (args < 1)
 	{
 		DisplayGlowColorMenu(client);
@@ -359,6 +324,9 @@ public Action Command_GlowColors(int client, int args)
 
 public Action Command_Rainbow(int client, int args)
 {
+	if (!client)
+		return Plugin_Handled;
+		
 	float Frequency = 1.0;
 	if (args >= 1)
 	{
@@ -385,86 +353,80 @@ public Action Command_Rainbow(int client, int args)
 
 void DisplayGlowColorMenu(int client)
 {
-	bool bAccess = CheckCommandAccess(client, "", ADMFLAG_CUSTOM2);
+	// We should not leave the command parameter empty, there can be an unexpected behavior
+	bool bAccess = CheckCommandAccess(client, "sm_glowcolors", ADMFLAG_CUSTOM2, true);
 	if (bAccess)
 	{
 		g_GlowColorsMenu.Display(client, MENU_TIME_FOREVER);
 	}
 	else
 	{
-		if (IsClientInGame(client) && !IsPlayerAlive(client))
+		if (!IsPlayerAlive(client))
 		{		
 			CPrintToChat(client, "%T", "NotAlive", client);
+			return;
 		}
 #if defined _zr_included
-		else if (g_Plugin_ZR && IsClientInGame(client) && IsPlayerAlive(client) && ZR_IsClientZombie(client))
-		{	
-			CPrintToChat(client, "%T", "Zombie", client);
-		}
-		else if (g_Plugin_ZR && ZR_GetActiveClass(client) != ZR_GetClassByName("Master Chief") && !ZR_IsClientZombie(client))
-		{	
-			CPrintToChat(client, "%T", "WrongModel", client);
+		if (g_Plugin_ZR)
+		{
+			if (ZR_IsClientZombie(client))
+			{
+				CPrintToChat(client, "%T", "Zombie", client);
+				return;
+			}
+			
+			if (ZR_GetActiveClass(client) != ZR_GetClassByName("Master Chief"))
+			{
+				CPrintToChat(client, "%T", "WrongModel", client);
+				return;
+			}
 		}
 #endif
-		else
-			g_GlowColorsMenu.Display(client, MENU_TIME_FOREVER);
+		g_GlowColorsMenu.Display(client, MENU_TIME_FOREVER);
 	}
 }
 
 public int MenuHandler_GlowColorsMenu(Menu menu, MenuAction action, int param1, int param2)
 {
-	switch(action)
+	if (action == MenuAction_Select)
 	{
-		case MenuAction_Select:
-		{
-			char aItem[16];
-			menu.GetItem(param2, aItem, sizeof(aItem));
+		char aItem[16];
+		menu.GetItem(param2, aItem, sizeof(aItem));
 
-			ColorStringToArray(aItem, g_aGlowColor[param1]);
-			int Color = (g_aGlowColor[param1][0] << 16) +
-				(g_aGlowColor[param1][1] << 8) +
-				(g_aGlowColor[param1][2] << 0);
+		ColorStringToArray(aItem, g_aGlowColor[param1]);
+		int Color = (g_aGlowColor[param1][0] << 16) +
+			(g_aGlowColor[param1][1] << 8) +
+			(g_aGlowColor[param1][2] << 0);
 
-			StopRainbow(param1);
+		StopRainbow(param1);
 
-			ApplyGlowColor(param1);
-			SaveClientCookies(param1);
-			CPrintToChat(param1, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);
-		}
+		ApplyGlowColor(param1);
+		SaveClientCookies(param1);
+		CPrintToChat(param1, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);
 	}
 	return 0;
 }
 
-// We do that with Hook to prevent get this functions run during map change
-public void Event_ClientDisconnect(Handle event, const char[] name, bool dontBroadcast)
-{
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (!client)
-		return;
-
-	g_bRainbowEnabled[client] = false;
-	OnClientDisconnect(client);
-}
-
 public void Event_ApplyGlowcolor(Event event, const char[] name, bool dontBroadcast)
 {
-	int client = GetClientOfUserId(GetEventInt(event, "userid"));
+	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (!client)
 		return;
 
-	CreateTimer(GetConVarFloat(g_Cvar_PluginTimer), Timer_ApplyGlowColor, GetClientSerial(client), TIMER_FLAG_NO_MAPCHANGE);
+	CreateTimer(g_Cvar_PluginTimer.FloatValue, Timer_ApplyGlowColor, GetClientSerial(client), TIMER_FLAG_NO_MAPCHANGE);
 }
 
 public Action Timer_ApplyGlowColor(Handle timer, int serial)
 {
 	int client = GetClientFromSerial(serial);
-	if (client)
-	{
-		if (g_bRainbowEnabled[client])
-			StartRainbow(client, g_aRainbowFrequency[client]);
-		else
-			ApplyGlowColor(client);
-	}
+	if (!client)
+		return Plugin_Continue;
+	
+	if (g_bRainbowEnabled[client])
+		StartRainbow(client, g_aRainbowFrequency[client]);
+	else
+		ApplyGlowColor(client);
+
 	return Plugin_Continue;
 }
 
@@ -480,10 +442,6 @@ public void ZR_OnClientHumanPost(int client, bool respawn, bool protect)
 
 bool ApplyGlowColor(int client)
 {
-	if (!IsClientInGame(client))
-		return false;
-
-	bool Ret = true;
 	int Brightness = ColorBrightness(g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 	if (Brightness < g_Cvar_MinBrightness.IntValue)
 	{
@@ -494,28 +452,35 @@ bool ApplyGlowColor(int client)
 		g_aGlowColor[client][1] = 255;
 		g_aGlowColor[client][2] = 255;
 		SaveClientCookies(client);
-		Ret = false;
+		return false;
 	}
 
-
-	if (IsPlayerAlive(client) && (CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) || CheckCommandAccess(client, "", ADMFLAG_ROOT)))
+	if (!IsPlayerAlive(client))
+		return false;
+		
+	if (CheckCommandAccess(client, "sm_glowcolors", ADMFLAG_CUSTOM2, true) || CheckCommandAccess(client, "sm_root", ADMFLAG_ROOT, true))
+	{
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
+		return true;
+	}
 
 #if defined _zr_included
-	if (g_Plugin_ZR && IsPlayerAlive(client) && ZR_GetActiveClass(client) == ZR_GetClassByName("Master Chief"))
-#else
-	if (IsPlayerAlive(client))
-#endif
+	if (g_Plugin_ZR && ZR_GetActiveClass(client) == ZR_GetClassByName("Master Chief"))
+	{
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
-
-#if defined _zr_included
-	if (g_Plugin_ZR && IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2) && ZR_IsClientZombie(client))
-#else
-	if (IsPlayerAlive(client) && !CheckCommandAccess(client, "", ADMFLAG_CUSTOM2))
-#endif
+		return true;
+	}
+	
+	if (g_Plugin_ZR && ZR_IsClientZombie(client))
+	{
 		ToolsSetEntityColor(client, 255, 255, 255);
+		return true;
+	}
+#else
+	ToolsSetEntityColor(client, 255, 255, 255);
+#endif
 
-	return Ret;
+	return true;
 }
 
 stock void StopRainbow(int client)
@@ -543,6 +508,7 @@ stock void StartRainbow(int client, float Frequency)
 
 	g_bRainbowEnabled[client] = true;
 }
+
 stock void ToolsGetEntityColor(int entity, int aColor[4])
 {
 	static bool s_GotConfig = false;
@@ -550,8 +516,8 @@ stock void ToolsGetEntityColor(int entity, int aColor[4])
 
 	if (!s_GotConfig)
 	{
-		Handle GameConf = LoadGameConfigFile("core.games");
-		bool Exists = GameConfGetKeyValue(GameConf, "m_clrRender", s_sProp, sizeof(s_sProp));
+		GameData GameConf = new GameData("core.games");
+		bool Exists = GameConf.GetKeyValue("m_clrRender", s_sProp, sizeof(s_sProp));
 		delete GameConf;
 
 		if (!Exists)
@@ -607,7 +573,8 @@ stock int ColorBrightness(int Red, int Green, int Blue)
 		Blue * Blue * 0.068));
 }
 
-public int Native_SetRainbow(Handle hPlugins, int numParams) {
+public int Native_SetRainbow(Handle hPlugins, int numParams)
+{
 	int client = GetNativeCell(1);
 
 	if (client < 1 || client > MaxClients || !IsClientInGame(client))
@@ -621,7 +588,8 @@ public int Native_SetRainbow(Handle hPlugins, int numParams) {
 	return 0;
 }
 
-public int Native_RemoveRainbow(Handle hPlugins, int numParams) {
+public int Native_RemoveRainbow(Handle hPlugins, int numParams)
+{
 	int client = GetNativeCell(1);
 
 	if (client < 1 || client > MaxClients || !IsClientInGame(client))
