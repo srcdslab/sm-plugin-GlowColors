@@ -354,7 +354,7 @@ public Action Command_Rainbow(int client, int args)
 void DisplayGlowColorMenu(int client)
 {
 	// We should not leave the command parameter empty, there can be an unexpected behavior
-	bool bAccess = CheckCommandAccess(client, "sm_vip", ADMFLAG_CUSTOM2, true);
+	bool bAccess = CheckCommandAccess(client, "sm_glowcolors", ADMFLAG_CUSTOM2, true);
 	if (bAccess)
 	{
 		g_GlowColorsMenu.Display(client, MENU_TIME_FOREVER);
@@ -458,7 +458,7 @@ bool ApplyGlowColor(int client)
 	if (!IsPlayerAlive(client))
 		return false;
 		
-	if (CheckCommandAccess(client, "sm_vip", ADMFLAG_CUSTOM2, true) || CheckCommandAccess(client, "sm_root", ADMFLAG_ROOT, true))
+	if (CheckCommandAccess(client, "sm_glowcolors", ADMFLAG_CUSTOM2, true) || CheckCommandAccess(client, "sm_root", ADMFLAG_ROOT, true))
 	{
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 		return true;
