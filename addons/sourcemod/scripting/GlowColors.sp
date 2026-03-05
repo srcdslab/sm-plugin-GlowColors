@@ -419,13 +419,14 @@ public void Event_ApplyGlowcolor(Event event, const char[] name, bool dontBroadc
 public Action Timer_ApplyGlowColor(Handle timer, int serial)
 {
 	int client = GetClientFromSerial(serial);
-	if (client)
-	{
-		if (g_bRainbowEnabled[client])
-			StartRainbow(client, g_aRainbowFrequency[client]);
-		else
-			ApplyGlowColor(client);
-	}
+	if (!client)
+		return Plugin_Continue;
+	
+	if (g_bRainbowEnabled[client])
+		StartRainbow(client, g_aRainbowFrequency[client]);
+	else
+		ApplyGlowColor(client);
+
 	return Plugin_Continue;
 }
 
