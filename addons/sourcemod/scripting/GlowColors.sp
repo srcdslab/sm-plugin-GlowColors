@@ -470,7 +470,7 @@ bool ApplyGlowColor(int client)
 		return true;
 	}
 	
-	if (ZR_IsClientZombie(client))
+	if (g_Plugin_ZR && ZR_IsClientZombie(client))
 	{
 		ToolsSetEntityColor(client, 255, 255, 255);
 		return true;
