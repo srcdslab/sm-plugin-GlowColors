@@ -184,8 +184,7 @@ public void OnClientCookiesCached(int client)
 
 	if (g_bRainbowEnabled[client] && !HasRainbowAccess(client))
 	{
-		g_bRainbowEnabled[client] = false;
-		g_aRainbowFrequency[client] = 0.0;
+		StopRainbow(client);
 		SaveClientCookies(client);
 	}
 }
@@ -435,8 +434,7 @@ public Action Timer_ApplyGlowColor(Handle timer, int serial)
 	{
 		if (g_bRainbowEnabled[client])
 		{
-			g_bRainbowEnabled[client] = false;
-			g_aRainbowFrequency[client] = 0.0;
+			StopRainbow(client);
 			SaveClientCookies(client);
 		}
 
