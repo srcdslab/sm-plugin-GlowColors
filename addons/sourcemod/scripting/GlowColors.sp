@@ -181,6 +181,13 @@ public void OnClientConnected(int client)
 public void OnClientCookiesCached(int client)
 {
 	ParseClientCookie(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2], g_bRainbowEnabled[client], g_aRainbowFrequency[client]);
+
+	if (g_bRainbowEnabled[client] && !HasRainbowAccess(client))
+	{
+		g_bRainbowEnabled[client] = false;
+		g_aRainbowFrequency[client] = 0.0;
+		SaveClientCookies(client);
+	}
 }
 
 void ParseClientCookie(int client, int &red, int &green, int &blue, bool &rainbowEnabled, float &rainbowFrequency)
@@ -354,7 +361,7 @@ public Action Command_Rainbow(int client, int args)
 void DisplayGlowColorMenu(int client)
 {
 	// We should not leave the command parameter empty, there can be an unexpected behavior
-	bool bAccess = CheckCommandAccess(client, "sm_glowcolors", ADMFLAG_CUSTOM2, true);
+	bool bAccess = HasGlowColorsAccess(client);
 	if (bAccess)
 	{
 		g_GlowColorsMenu.Display(client, MENU_TIME_FOREVER);
@@ -422,12 +429,31 @@ public Action Timer_ApplyGlowColor(Handle timer, int serial)
 	if (!client)
 		return Plugin_Continue;
 	
-	if (g_bRainbowEnabled[client])
+	if (g_bRainbowEnabled[client] && HasRainbowAccess(client))
 		StartRainbow(client, g_aRainbowFrequency[client]);
 	else
+	{
+		if (g_bRainbowEnabled[client])
+		{
+			g_bRainbowEnabled[client] = false;
+			g_aRainbowFrequency[client] = 0.0;
+			SaveClientCookies(client);
+		}
+
 		ApplyGlowColor(client);
+	}
 
 	return Plugin_Continue;
+}
+
+bool HasRainbowAccess(int client)
+{
+	return CheckCommandAccess(client, "sm_rainbow", ADMFLAG_CUSTOM1, true) || CheckCommandAccess(client, "sm_root", ADMFLAG_ROOT, true);
+}
+
+bool HasGlowColorsAccess(int client)
+{
+	return CheckCommandAccess(client, "sm_glowcolors", ADMFLAG_CUSTOM2, true) || CheckCommandAccess(client, "sm_root", ADMFLAG_ROOT, true);
 }
 
 public void ZR_OnClientInfected(int client, int attacker, bool motherInfect, bool respawnOverride, bool respawn)
@@ -458,7 +484,7 @@ bool ApplyGlowColor(int client)
 	if (!IsPlayerAlive(client))
 		return false;
 		
-	if (CheckCommandAccess(client, "sm_glowcolors", ADMFLAG_CUSTOM2, true) || CheckCommandAccess(client, "sm_root", ADMFLAG_ROOT, true))
+	if (HasGlowColorsAccess(client))
 	{
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 		return true;
