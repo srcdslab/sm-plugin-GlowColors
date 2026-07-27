@@ -466,6 +466,9 @@ public void ZR_OnClientHumanPost(int client, bool respawn, bool protect)
 
 bool ApplyGlowColor(int client)
 {
+	if (client < 1 || client > MaxClients || !IsClientInGame(client))
+		return false;
+
 	int Brightness = ColorBrightness(g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 	if (Brightness < g_Cvar_MinBrightness.IntValue)
 	{
