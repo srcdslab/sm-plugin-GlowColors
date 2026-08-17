@@ -13,25 +13,22 @@ This repository contains the **GlowColors** plugin for SourceMod, a scripting pl
 ## Technical Environment
 
 ### Build System
-- **Build Tool**: SourceKnight 0.2 (defined in `sourceknight.yaml`)
-- **Compiler**: SourceMod compiler (spcomp) via SourceKnight
-- **Target Platform**: SourceMod 1.11.0+ (project uses 1.11.0-git6934)
+- **Build Tool**: Native GitHub Actions workflow (`.github/workflows/ci.yml`) using `rumblefrog/setup-sp`
+- **Compiler**: SourceMod compiler (spcomp)
+- **Target Platform**: SourceMod 1.12.x
 - **Output**: Compiled .smx files to `/addons/sourcemod/plugins`
 
 ### Dependencies
-- **SourceMod**: 1.11.0-git6934 (base platform)
+- **SourceMod**: 1.12.x (base platform)
 - **MultiColors**: Color formatting library (required)
 - **ZombieReloaded**: Optional integration for zombie game modes
 
 ### Build Commands
 ```bash
-# Install SourceKnight (if not available)
-pip install sourceknight
-
-# Build the plugin
-sourceknight build
-
-# The CI uses GitHub Actions with maxime1907/action-sourceknight@v1
+# CI builds automatically via GitHub Actions on push/PR (see .github/workflows/ci.yml)
+# Locally, install spcomp matching SourceMod 1.12.x and the include dependencies,
+# then compile with:
+spcomp -i addons/sourcemod/scripting/include -o addons/sourcemod/plugins/GlowColors.smx addons/sourcemod/scripting/GlowColors.sp
 ```
 
 ## Project Architecture
