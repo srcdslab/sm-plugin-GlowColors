@@ -38,6 +38,7 @@ int g_aGlowColor[MAXPLAYERS + 1][3];
 float g_aRainbowFrequency[MAXPLAYERS + 1];
 bool g_bLate = false;
 bool g_bRainbowEnabled[MAXPLAYERS+1] = {false,...};
+bool g_bRainbowHooked[MAXPLAYERS+1] = {false,...};
 bool g_Plugin_ZR = false;
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -176,6 +177,7 @@ public void OnClientConnected(int client)
 	g_aGlowColor[client][2] = 255;
 	g_aRainbowFrequency[client] = 0.0;
 	g_bRainbowEnabled[client] = false;
+	g_bRainbowHooked[client] = false;
 }
 
 public void OnClientCookiesCached(int client)
@@ -250,6 +252,9 @@ void SaveClientCookies(int client)
 
 public void OnPostThinkPost(int client)
 {
+	if (!g_bRainbowEnabled[client])
+		return;
+
 	float i = GetGameTime();
 	float Frequency = g_aRainbowFrequency[client];
 
@@ -265,7 +270,8 @@ public Action Command_GlowColors(int client, int args)
 	if (!client)
 		return Plugin_Handled;
 		
-	if (args < 1)
+	// No argument, or a player without direct access: only the predefined menu is allowed.
+	if (args < 1 || !HasGlowColorsAccess(client))
 	{
 		DisplayGlowColorMenu(client);
 		return Plugin_Handled;
@@ -277,6 +283,7 @@ public Action Command_GlowColors(int client, int args)
 	{
 		char sColorString[32];
 		GetCmdArgString(sColorString, sizeof(sColorString));
+		TrimString(sColorString);
 
 		if (!IsValidHex(sColorString))
 		{
@@ -284,7 +291,9 @@ public Action Command_GlowColors(int client, int args)
 			return Plugin_Handled;
 		}
 
-		Color = StringToInt(sColorString, 16);
+		// Skip an optional leading '#' so StringToInt() doesn't stop parsing at it.
+		int iOffset = (sColorString[0] == '#') ? 1 : 0;
+		Color = StringToInt(sColorString[iOffset], 16);
 
 		g_aGlowColor[client][0] = (Color >> 16) & 0xFF;
 		g_aGlowColor[client][1] = (Color >> 8) & 0xFF;
@@ -294,6 +303,7 @@ public Action Command_GlowColors(int client, int args)
 	{
 		char sColorString[32];
 		GetCmdArgString(sColorString, sizeof(sColorString));
+		TrimString(sColorString);
 
 		if (!IsValidRGBNum(sColorString))
 		{
@@ -350,7 +360,7 @@ public Action Command_Rainbow(int client, int args)
 	else
 	{
 		StartRainbow(client, Frequency);
-		CPrintToChat(client, "%s{olive} Enabled {default}rainbow glowcolors. (Frequency = {olive}%0.1f{default})", CHAT_PREFIX, Frequency);
+		CPrintToChat(client, "%s{olive} Enabled {default}rainbow glowcolors. (Frequency = {olive}%0.1f{default})", CHAT_PREFIX, g_aRainbowFrequency[client]);
 	}
 	
 	SaveClientCookies(client);
@@ -406,7 +416,9 @@ public int MenuHandler_GlowColorsMenu(Menu menu, MenuAction action, int param1, 
 
 		StopRainbow(param1);
 
-		ApplyGlowColor(param1);
+		if (!ApplyGlowColor(param1))
+			return 0;
+
 		SaveClientCookies(param1);
 		CPrintToChat(param1, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);
 	}
@@ -483,8 +495,8 @@ bool ApplyGlowColor(int client)
 	}
 
 	if (!IsPlayerAlive(client))
-		return false;
-		
+		return true;
+
 	if (HasGlowColorsAccess(client))
 	{
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
@@ -512,12 +524,14 @@ bool ApplyGlowColor(int client)
 
 stock void StopRainbow(int client)
 {
-	if (g_aRainbowFrequency[client])
+	if (g_bRainbowHooked[client])
 	{
-		g_bRainbowEnabled[client] = false;
 		SDKUnhook(client, SDKHook_PostThinkPost, OnPostThinkPost);
-		g_aRainbowFrequency[client] = 0.0;
+		g_bRainbowHooked[client] = false;
 	}
+
+	g_bRainbowEnabled[client] = false;
+	g_aRainbowFrequency[client] = 0.0;
 }
 
 stock void StartRainbow(int client, float Frequency)
@@ -531,40 +545,26 @@ stock void StartRainbow(int client, float Frequency)
 		Frequency = MaxFrequency;
 
 	g_aRainbowFrequency[client] = Frequency;
-	SDKHook(client, SDKHook_PostThinkPost, OnPostThinkPost);
+
+	// Hook exactly once: StartRainbow() is called again on every respawn/team change
+	// and whenever the frequency is adjusted, so an unguarded SDKHook() would stack
+	// duplicate hooks that a single SDKUnhook() can never fully remove.
+	if (!g_bRainbowHooked[client])
+	{
+		SDKHook(client, SDKHook_PostThinkPost, OnPostThinkPost);
+		g_bRainbowHooked[client] = true;
+	}
 
 	g_bRainbowEnabled[client] = true;
 }
 
-stock void ToolsGetEntityColor(int entity, int aColor[4])
-{
-	static bool s_GotConfig = false;
-	static char s_sProp[32];
-
-	if (!s_GotConfig)
-	{
-		GameData GameConf = new GameData("core.games");
-		bool Exists = GameConf.GetKeyValue("m_clrRender", s_sProp, sizeof(s_sProp));
-		delete GameConf;
-
-		if (!Exists)
-			strcopy(s_sProp, sizeof(s_sProp), "m_clrRender");
-
-		s_GotConfig = true;
-	}
-
-	int Offset = GetEntSendPropOffs(entity, s_sProp);
-
-	for(int i = 0; i < 4; i++)
-		aColor[i] = GetEntData(entity, Offset + i, 1);
-}
-
 stock void ToolsSetEntityColor(int client, int Red, int Green, int Blue)
 {
-	int aColor[4];
-	ToolsGetEntityColor(client, aColor);
+	int iCurRed, iCurGreen, iCurBlue, iCurAlpha;
+	GetEntityRenderColor(client, iCurRed, iCurGreen, iCurBlue, iCurAlpha);
 
-	SetEntityRenderColor(client, Red, Green, Blue, aColor[3]);
+	// Preserve the current alpha channel, only swap the RGB components.
+	SetEntityRenderColor(client, Red, Green, Blue, iCurAlpha);
 }
 
 stock void ColorStringToArray(const char[] sColorString, int aColor[3])
