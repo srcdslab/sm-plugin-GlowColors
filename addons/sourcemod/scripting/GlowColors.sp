@@ -494,9 +494,12 @@ bool ApplyGlowColor(int client)
 		return false;
 	}
 
+	// The color itself is valid and has already been stored/persisted above; there's just
+	// no live entity to render it on right now. Report success so callers (command/menu
+	// handlers) save the cookie and confirm the pick - it will apply on the next spawn.
 	if (!IsPlayerAlive(client))
-		return false;
-		
+		return true;
+
 	if (HasGlowColorsAccess(client))
 	{
 		ToolsSetEntityColor(client, g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
