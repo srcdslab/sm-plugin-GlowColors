@@ -494,9 +494,6 @@ bool ApplyGlowColor(int client)
 		return false;
 	}
 
-	// The color itself is valid and has already been stored/persisted above; there's just
-	// no live entity to render it on right now. Report success so callers (command/menu
-	// handlers) save the cookie and confirm the pick - it will apply on the next spawn.
 	if (!IsPlayerAlive(client))
 		return true;
 
