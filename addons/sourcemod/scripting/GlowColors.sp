@@ -55,8 +55,8 @@ public void OnPluginStart()
 {
 	g_hClientCookie = new Cookie("glowcolor_data", "Player glowcolor data (RGB|Rainbow|Frequency)", CookieAccess_Protected);
 
-	g_Regex_RGB = CompileRegex("^(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\s+){2}([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$");
-	g_Regex_HEX = CompileRegex("^(#?)([A-Fa-f0-9]{6})$");
+	g_Regex_RGB = new Regex("^(([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])\\s+){2}([01]?[0-9]?[0-9]|2[0-4][0-9]|25[0-5])$");
+	g_Regex_HEX = new Regex("^(#?)([A-Fa-f0-9]{6})$");
 
 	RegAdminCmd("sm_glowcolors", Command_GlowColors, ADMFLAG_CUSTOM2, "Change your players glowcolor. sm_glowcolors <RRGGBB HEX | 0-255 0-255 0-255 RGB CODE>");
 	RegAdminCmd("sm_glowcolours", Command_GlowColors, ADMFLAG_CUSTOM2, "Change your players glowcolor. sm_glowcolours <RRGGBB HEX | 0-255 0-255 0-255 RGB CODE>");
