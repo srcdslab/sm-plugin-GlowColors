@@ -4,17 +4,32 @@
 	{
 		"en"		"{green}[Master Chief Colors Menu] {olive}You must be alive"
 		"ru"		"{green}[Master Chief Colors Menu] {olive}Вы должны быть живы"
+		"fr"		"{green}[Master Chief Colors Menu] {olive}Vous devez être en vie"
+		"es"		"{green}[Master Chief Colors Menu] {olive}Debes estar vivo"
+		"de"		"{green}[Master Chief Colors Menu] {olive}Du musst am Leben sein"
+		"pt"		"{green}[Master Chief Colors Menu] {olive}Você precisa estar vivo"
+		"chi"		"{green}[Master Chief Colors Menu] {olive}你必须处于存活状态"
 	}
 	
 	"Zombie"
 	{
 		"en"		"{green}[Master Chief Colors Menu] {olive}You must be a human and your human class should be {white}Super Soldier"
 		"ru"		"{green}[Master Chief Colors Menu] {olive}Вы должны быть человеком и Ваш класс человека должен быть {white}Super Soldier"
+		"fr"		"{green}[Master Chief Colors Menu] {olive}Vous devez être humain et votre classe humaine doit être {white}Super Soldier"
+		"es"		"{green}[Master Chief Colors Menu] {olive}Debes ser humano y tu clase humana debe ser {white}Super Soldier"
+		"de"		"{green}[Master Chief Colors Menu] {olive}Du musst ein Mensch sein und deine Menschenklasse muss {white}Super Soldier {olive}sein"
+		"pt"		"{green}[Master Chief Colors Menu] {olive}Você precisa ser humano e sua classe humana deve ser {white}Super Soldier"
+		"chi"		"{green}[Master Chief Colors Menu] {olive}你必须是人类，且人类职业必须为 {white}Super Soldier"
 	}
 	
 	"WrongModel"
 	{
-		"en"		"{green}[Master Chief Colors Menu] {olive}Your current model isn't colorable. This function available only for human class - {white}Super Soldier"
-		"ru"		"{green}[Master Chief Colors Menu] {olive}Ваша модель не может цветной. Эта функция доступка только для класса людей - {white}Super Soldier"
+		"en"		"{green}[Master Chief Colors Menu] {olive}Your current model isn't colorable. This function is only available for the human class - {white}Super Soldier"
+		"ru"		"{green}[Master Chief Colors Menu] {olive}Вашу модель нельзя окрасить. Эта функция доступна только для класса людей - {white}Super Soldier"
+		"fr"		"{green}[Master Chief Colors Menu] {olive}Votre modèle actuel ne peut pas être coloré. Cette fonction n'est disponible que pour la classe humaine - {white}Super Soldier"
+		"es"		"{green}[Master Chief Colors Menu] {olive}Tu modelo actual no se puede colorear. Esta función solo está disponible para la clase humana - {white}Super Soldier"
+		"de"		"{green}[Master Chief Colors Menu] {olive}Dein aktuelles Modell kann nicht eingefärbt werden. Diese Funktion gibt es nur für die Menschenklasse - {white}Super Soldier"
+		"pt"		"{green}[Master Chief Colors Menu] {olive}Seu modelo atual não pode ser colorido. Esta função só está disponível para a classe humana - {white}Super Soldier"
+		"chi"		"{green}[Master Chief Colors Menu] {olive}你当前的模型无法上色。此功能仅适用于人类职业 - {white}Super Soldier"
 	}
 }
