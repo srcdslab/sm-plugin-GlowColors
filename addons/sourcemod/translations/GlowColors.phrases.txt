@@ -32,4 +32,118 @@
 		"pt"		"{green}[Master Chief Colors Menu] {olive}Seu modelo atual não pode ser colorido. Esta função só está disponível para a classe humana - {white}Super Soldier"
 		"chi"		"{green}[Master Chief Colors Menu] {olive}你当前的模型无法上色。此功能仅适用于人类职业 - {white}Super Soldier"
 	}
+
+	"GC_Menu_None"
+	{
+		"en"		"None"
+		"fr"		"Aucune"
+		"ru"		"Нет"
+		"es"		"Ninguno"
+		"de"		"Keine"
+		"pt"		"Nenhuma"
+		"chi"		"无"
+	}
+
+	"GC_Reload_Attempt"
+	{
+		"en"		"Attempting to reload configuration..."
+		"fr"		"Tentative de rechargement de la configuration..."
+		"ru"		"Попытка перезагрузить конфигурацию..."
+		"es"		"Intentando recargar la configuración..."
+		"de"		"Versuche, die Konfiguration neu zu laden..."
+		"pt"		"Tentando recarregar a configuração..."
+		"chi"		"正在尝试重新加载配置..."
+	}
+
+	"GC_Reload_Success"
+	{
+		"en"		"Configuration file reloaded successfully."
+		"fr"		"Fichier de configuration rechargé avec succès."
+		"ru"		"Файл конфигурации успешно перезагружен."
+		"es"		"Archivo de configuración recargado correctamente."
+		"de"		"Konfigurationsdatei erfolgreich neu geladen."
+		"pt"		"Arquivo de configuração recarregado com sucesso."
+		"chi"		"配置文件已成功重新加载。"
+	}
+
+	"GC_Invalid_Hex"
+	{
+		"en"		"Invalid HEX color code supplied."
+		"fr"		"Code couleur HEX invalide."
+		"ru"		"Указан неверный HEX-код цвета."
+		"es"		"Código de color HEX no válido."
+		"de"		"Ungültiger HEX-Farbcode angegeben."
+		"pt"		"Código de cor HEX inválido."
+		"chi"		"提供的 HEX 颜色代码无效。"
+	}
+
+	"GC_Invalid_RGB"
+	{
+		"en"		"Invalid RGB color code supplied."
+		"fr"		"Code couleur RGB invalide."
+		"ru"		"Указан неверный RGB-код цвета."
+		"es"		"Código de color RGB no válido."
+		"de"		"Ungültiger RGB-Farbcode angegeben."
+		"pt"		"Código de cor RGB inválido."
+		"chi"		"提供的 RGB 颜色代码无效。"
+	}
+
+	"GC_Usage"
+	{
+		"#format"	"{1:s}"
+		"en"		"Usage: {1} <RRGGBB HEX | 0-255 0-255 0-255 RGB CODE>"
+		"fr"		"Utilisation : {1} <RRGGBB HEX | 0-255 0-255 0-255 CODE RGB>"
+		"ru"		"Использование: {1} <RRGGBB HEX | 0-255 0-255 0-255 RGB-КОД>"
+		"es"		"Uso: {1} <RRGGBB HEX | 0-255 0-255 0-255 CÓDIGO RGB>"
+		"de"		"Verwendung: {1} <RRGGBB HEX | 0-255 0-255 0-255 RGB-CODE>"
+		"pt"		"Uso: {1} <RRGGBB HEX | 0-255 0-255 0-255 CÓDIGO RGB>"
+		"chi"		"用法：{1} <RRGGBB HEX | 0-255 0-255 0-255 RGB 代码>"
+	}
+
+	"GC_Color_Set"
+	{
+		"#format"	"{1:06X}"
+		"en"		"Set color to: {1}"
+		"fr"		"Couleur réglée sur : {1}"
+		"ru"		"Цвет установлен: {1}"
+		"es"		"Color establecido en: {1}"
+		"de"		"Farbe gesetzt auf: {1}"
+		"pt"		"Cor definida como: {1}"
+		"chi"		"颜色已设为：{1}"
+	}
+
+	"GC_Rainbow_Off"
+	{
+		"en"		"Disabled {default}rainbow glowcolors."
+		"fr"		"Désactivé {default}: couleurs de lueur arc-en-ciel."
+		"ru"		"Выключено {default}радужное свечение."
+		"es"		"Desactivado {default}el brillo arcoíris."
+		"de"		"Deaktiviert {default}: Regenbogen-Leuchtfarben."
+		"pt"		"Desativado {default}o brilho arco-íris."
+		"chi"		"已关闭 {default}彩虹光晕颜色。"
+	}
+
+	"GC_Rainbow_On"
+	{
+		"#format"	"{1:0.1f}"
+		"en"		"Enabled {default}rainbow glowcolors. (Frequency = {olive}{1}{default})"
+		"fr"		"Activé {default}: couleurs de lueur arc-en-ciel. (Fréquence = {olive}{1}{default})"
+		"ru"		"Включено {default}радужное свечение. (Частота = {olive}{1}{default})"
+		"es"		"Activado {default}el brillo arcoíris. (Frecuencia = {olive}{1}{default})"
+		"de"		"Aktiviert {default}: Regenbogen-Leuchtfarben. (Frequenz = {olive}{1}{default})"
+		"pt"		"Ativado {default}o brilho arco-íris. (Frequência = {olive}{1}{default})"
+		"chi"		"已开启 {default}彩虹光晕颜色。（频率 = {olive}{1}{default}）"
+	}
+
+	"GC_Too_Dark"
+	{
+		"#format"	"{1:d},{2:d}"
+		"en"		"Your glowcolor is too dark! (brightness = {red}{1}{default}/255, allowed values are {green}> {2}{default})"
+		"fr"		"Votre couleur de lueur est trop sombre ! (luminosité = {red}{1}{default}/255, valeurs autorisées {green}> {2}{default})"
+		"ru"		"Ваш цвет свечения слишком тёмный! (яркость = {red}{1}{default}/255, допустимо {green}> {2}{default})"
+		"es"		"¡Tu color de brillo es demasiado oscuro! (brillo = {red}{1}{default}/255, valores permitidos {green}> {2}{default})"
+		"de"		"Deine Leuchtfarbe ist zu dunkel! (Helligkeit = {red}{1}{default}/255, erlaubte Werte {green}> {2}{default})"
+		"pt"		"Sua cor de brilho é escura demais! (brilho = {red}{1}{default}/255, valores permitidos {green}> {2}{default})"
+		"chi"		"你的光晕颜色太暗了！（亮度 = {red}{1}{default}/255，允许的值为 {green}> {2}{default}）"
+	}
 }
