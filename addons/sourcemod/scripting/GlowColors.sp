@@ -141,7 +141,7 @@ void LoadConfig()
 
 	delete g_GlowColorsMenu;
 
-	g_GlowColorsMenu = new Menu(MenuHandler_GlowColorsMenu, MenuAction_Select);
+	g_GlowColorsMenu = new Menu(MenuHandler_GlowColorsMenu, MenuAction_Select|MenuAction_DisplayItem);
 	g_GlowColorsMenu.SetTitle("GlowColors");
 	g_GlowColorsMenu.ExitButton = true;
 
@@ -163,10 +163,10 @@ void LoadConfig()
 
 public Action Command_ReloadConfig(int client, int args)
 {
-	CReplyToCommand(client, "%s Attempting to reload configuration...", CHAT_PREFIX);
+	CReplyToCommand(client, "%s %t", CHAT_PREFIX, "GC_Reload_Attempt");
 	LoadConfig();
 
-	CReplyToCommand(client, "%s Configuration file reloaded successfully.", CHAT_PREFIX);
+	CReplyToCommand(client, "%s %t", CHAT_PREFIX, "GC_Reload_Success");
 	return Plugin_Handled;
 }
 
@@ -287,7 +287,7 @@ public Action Command_GlowColors(int client, int args)
 
 		if (!IsValidHex(sColorString))
 		{
-			CPrintToChat(client, "%s Invalid HEX color code supplied.", CHAT_PREFIX);
+			CPrintToChat(client, "%s %t", CHAT_PREFIX, "GC_Invalid_Hex");
 			return Plugin_Handled;
 		}
 
@@ -307,7 +307,7 @@ public Action Command_GlowColors(int client, int args)
 
 		if (!IsValidRGBNum(sColorString))
 		{
-			CPrintToChat(client, "%s Invalid RGB color code supplied.", CHAT_PREFIX);
+			CPrintToChat(client, "%s %t", CHAT_PREFIX, "GC_Invalid_RGB");
 			return Plugin_Handled;
 		}
 
@@ -321,7 +321,7 @@ public Action Command_GlowColors(int client, int args)
 	{
 		char sCommand[32];
 		GetCmdArg(0, sCommand, sizeof(sCommand));
-		CPrintToChat(client, "%s Usage: %s <RRGGBB HEX | 0-255 0-255 0-255 RGB CODE>", CHAT_PREFIX, sCommand);
+		CPrintToChat(client, "%s %t", CHAT_PREFIX, "GC_Usage", sCommand);
 		return Plugin_Handled;
 	}
 
@@ -333,7 +333,7 @@ public Action Command_GlowColors(int client, int args)
 	if (GetCmdReplySource() == SM_REPLY_TO_CHAT)
 	{
 		StopRainbow(client);
-		CPrintToChat(client, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);	
+		CPrintToChat(client, "%s \x07%06X %t", CHAT_PREFIX, Color, "GC_Color_Set", Color);	
 	}
 	return Plugin_Handled;
 }
@@ -354,13 +354,13 @@ public Action Command_Rainbow(int client, int args)
 	if (!Frequency || (args < 1 && g_aRainbowFrequency[client]))
 	{
 		StopRainbow(client);
-		CPrintToChat(client, "%s{olive} Disabled {default}rainbow glowcolors.", CHAT_PREFIX);
+		CPrintToChat(client, "%s{olive} %t", CHAT_PREFIX, "GC_Rainbow_Off");
 		ApplyGlowColor(client);
 	}
 	else
 	{
 		StartRainbow(client, Frequency);
-		CPrintToChat(client, "%s{olive} Enabled {default}rainbow glowcolors. (Frequency = {olive}%0.1f{default})", CHAT_PREFIX, g_aRainbowFrequency[client]);
+		CPrintToChat(client, "%s{olive} %t", CHAT_PREFIX, "GC_Rainbow_On", g_aRainbowFrequency[client]);
 	}
 	
 	SaveClientCookies(client);
@@ -404,7 +404,13 @@ void DisplayGlowColorMenu(int client)
 
 public int MenuHandler_GlowColorsMenu(Menu menu, MenuAction action, int param1, int param2)
 {
-	if (action == MenuAction_Select)
+	if (action == MenuAction_DisplayItem && param2 == 0)
+	{
+		char sDisplay[64];
+		FormatEx(sDisplay, sizeof(sDisplay), "%T", "GC_Menu_None", param1);
+		return RedrawMenuItem(sDisplay);
+	}
+	else if (action == MenuAction_Select)
 	{
 		char aItem[16];
 		menu.GetItem(param2, aItem, sizeof(aItem));
@@ -420,7 +426,7 @@ public int MenuHandler_GlowColorsMenu(Menu menu, MenuAction action, int param1, 
 			return 0;
 
 		SaveClientCookies(param1);
-		CPrintToChat(param1, "%s \x07%06X Set color to: %06X", CHAT_PREFIX, Color, Color);
+		CPrintToChat(param1, "%s \x07%06X %t", CHAT_PREFIX, Color, "GC_Color_Set", Color);
 	}
 	return 0;
 }
@@ -484,7 +490,7 @@ bool ApplyGlowColor(int client)
 	int Brightness = ColorBrightness(g_aGlowColor[client][0], g_aGlowColor[client][1], g_aGlowColor[client][2]);
 	if (Brightness < g_Cvar_MinBrightness.IntValue)
 	{
-		CPrintToChat(client, "%s Your glowcolor is too dark! (brightness = {red}%d{default}/255, allowed values are {green}> %d{default})", CHAT_PREFIX,
+		CPrintToChat(client, "%s %t", CHAT_PREFIX, "GC_Too_Dark",
 			Brightness, g_Cvar_MinBrightness.IntValue -1 );
 
 		g_aGlowColor[client][0] = 255;
