@@ -9,6 +9,12 @@
 		"de"		"{green}[Master Chief Colors Menu] {olive}Du musst am Leben sein"
 		"pt"		"{green}[Master Chief Colors Menu] {olive}Você precisa estar vivo"
 		"chi"		"{green}[Master Chief Colors Menu] {olive}你必须处于存活状态"
+		"pl"		"Musisz żyć"
+		"tr"		"Hayatta olmalısın"
+		"it"		"Devi essere vivo"
+		"ua"		"Ви повинні бути живим"
+		"zho"		"你必須處於存活狀態"
+		"cze"		"Musíš být naživu"
 	}
 	
 	"Zombie"
@@ -20,6 +26,12 @@
 		"de"		"{green}[Master Chief Colors Menu] {olive}Du musst ein Mensch sein und deine Menschenklasse muss {white}Super Soldier {olive}sein"
 		"pt"		"{green}[Master Chief Colors Menu] {olive}Você precisa ser humano e sua classe humana deve ser {white}Super Soldier"
 		"chi"		"{green}[Master Chief Colors Menu] {olive}你必须是人类，且人类职业必须为 {white}Super Soldier"
+		"pl"		"Musisz być człowiekiem, a twoja klasa człowieka musi być {white}Super Soldier"
+		"tr"		"İnsan olmalısın ve insan sınıfın {white}Super Soldier {olive}olmalı"
+		"it"		"Devi essere un umano e la tua classe umana deve essere {white}Super Soldier"
+		"ua"		"Ви повинні бути людиною, а ваш клас людини має бути {white}Super Soldier"
+		"zho"		"你必須是人類，且人類職業必須為 {white}Super Soldier"
+		"cze"		"Musíš být člověk a tvoje lidská třída musí být {white}Super Soldier"
 	}
 	
 	"WrongModel"
@@ -31,6 +43,12 @@
 		"de"		"{green}[Master Chief Colors Menu] {olive}Dein aktuelles Modell kann nicht eingefärbt werden. Diese Funktion gibt es nur für die Menschenklasse - {white}Super Soldier"
 		"pt"		"{green}[Master Chief Colors Menu] {olive}Seu modelo atual não pode ser colorido. Esta função só está disponível para a classe humana - {white}Super Soldier"
 		"chi"		"{green}[Master Chief Colors Menu] {olive}你当前的模型无法上色。此功能仅适用于人类职业 - {white}Super Soldier"
+		"pl"		"Twój obecny model nie może być kolorowany. Ta funkcja jest dostępna tylko dla klasy ludzi - {white}Super Soldier"
+		"tr"		"Mevcut modelin renklendirilemez. Bu özellik yalnızca insan sınıfı için geçerlidir - {white}Super Soldier"
+		"it"		"Il tuo modello attuale non può essere colorato. Questa funzione è disponibile solo per la classe umana - {white}Super Soldier"
+		"ua"		"Вашу модель не можна розфарбувати. Ця функція доступна лише для класу людей - {white}Super Soldier"
+		"zho"		"你目前的模型無法上色。此功能僅適用於人類職業 - {white}Super Soldier"
+		"cze"		"Tvůj současný model nelze obarvit. Tato funkce je dostupná jen pro lidskou třídu - {white}Super Soldier"
 	}
 
 	"GC_Menu_None"
@@ -42,6 +60,12 @@
 		"de"		"Keine"
 		"pt"		"Nenhuma"
 		"chi"		"无"
+		"pl"		"Brak"
+		"tr"		"Yok"
+		"it"		"Nessuno"
+		"ua"		"Немає"
+		"zho"		"無"
+		"cze"		"Žádná"
 	}
 
 	"GC_Reload_Attempt"
@@ -53,6 +77,12 @@
 		"de"		"Versuche, die Konfiguration neu zu laden..."
 		"pt"		"Tentando recarregar a configuração..."
 		"chi"		"正在尝试重新加载配置..."
+		"pl"		"Próba ponownego wczytania konfiguracji..."
+		"tr"		"Yapılandırma yeniden yüklenmeye çalışılıyor..."
+		"it"		"Tentativo di ricaricare la configurazione..."
+		"ua"		"Спроба перезавантажити конфігурацію..."
+		"zho"		"正在嘗試重新載入設定..."
+		"cze"		"Pokus o opětovné načtení konfigurace..."
 	}
 
 	"GC_Reload_Success"
@@ -64,6 +94,12 @@
 		"de"		"Konfigurationsdatei erfolgreich neu geladen."
 		"pt"		"Arquivo de configuração recarregado com sucesso."
 		"chi"		"配置文件已成功重新加载。"
+		"pl"		"Plik konfiguracyjny został pomyślnie wczytany ponownie."
+		"tr"		"Yapılandırma dosyası başarıyla yeniden yüklendi."
+		"it"		"File di configurazione ricaricato con successo."
+		"ua"		"Файл конфігурації успішно перезавантажено."
+		"zho"		"設定檔已成功重新載入。"
+		"cze"		"Konfigurační soubor byl úspěšně znovu načten."
 	}
 
 	"GC_Invalid_Hex"
@@ -75,6 +111,12 @@
 		"de"		"Ungültiger HEX-Farbcode angegeben."
 		"pt"		"Código de cor HEX inválido."
 		"chi"		"提供的 HEX 颜色代码无效。"
+		"pl"		"Podano nieprawidłowy kod koloru HEX."
+		"tr"		"Geçersiz HEX renk kodu girildi."
+		"it"		"Codice colore HEX non valido."
+		"ua"		"Вказано недійсний HEX-код кольору."
+		"zho"		"提供的 HEX 顏色代碼無效。"
+		"cze"		"Zadán neplatný HEX kód barvy."
 	}
 
 	"GC_Invalid_RGB"
@@ -86,6 +128,12 @@
 		"de"		"Ungültiger RGB-Farbcode angegeben."
 		"pt"		"Código de cor RGB inválido."
 		"chi"		"提供的 RGB 颜色代码无效。"
+		"pl"		"Podano nieprawidłowy kod koloru RGB."
+		"tr"		"Geçersiz RGB renk kodu girildi."
+		"it"		"Codice colore RGB non valido."
+		"ua"		"Вказано недійсний RGB-код кольору."
+		"zho"		"提供的 RGB 顏色代碼無效。"
+		"cze"		"Zadán neplatný RGB kód barvy."
 	}
 
 	"GC_Usage"
@@ -98,6 +146,12 @@
 		"de"		"Verwendung: {1} <RRGGBB HEX | 0-255 0-255 0-255 RGB-CODE>"
 		"pt"		"Uso: {1} <RRGGBB HEX | 0-255 0-255 0-255 CÓDIGO RGB>"
 		"chi"		"用法：{1} <RRGGBB HEX | 0-255 0-255 0-255 RGB 代码>"
+		"pl"		"Użycie: {1} <RRGGBB HEX | 0-255 0-255 0-255 KOD RGB>"
+		"tr"		"Kullanım: {1} <RRGGBB HEX | 0-255 0-255 0-255 RGB KODU>"
+		"it"		"Uso: {1} <RRGGBB HEX | 0-255 0-255 0-255 CODICE RGB>"
+		"ua"		"Використання: {1} <RRGGBB HEX | 0-255 0-255 0-255 RGB-КОД>"
+		"zho"		"用法：{1} <RRGGBB HEX | 0-255 0-255 0-255 RGB 代碼>"
+		"cze"		"Použití: {1} <RRGGBB HEX | 0-255 0-255 0-255 RGB KÓD>"
 	}
 
 	"GC_Color_Set"
@@ -110,6 +164,12 @@
 		"de"		"Farbe gesetzt auf: {1}"
 		"pt"		"Cor definida como: {1}"
 		"chi"		"颜色已设为：{1}"
+		"pl"		"Ustawiono kolor: {1}"
+		"tr"		"Renk ayarlandı: {1}"
+		"it"		"Colore impostato su: {1}"
+		"ua"		"Колір встановлено: {1}"
+		"zho"		"顏色已設為：{1}"
+		"cze"		"Barva nastavena na: {1}"
 	}
 
 	"GC_Rainbow_Off"
@@ -121,6 +181,12 @@
 		"de"		"Deaktiviert {default}: Regenbogen-Leuchtfarben."
 		"pt"		"Desativado {default}o brilho arco-íris."
 		"chi"		"已关闭 {default}彩虹光晕颜色。"
+		"pl"		"Wyłączono tęczowe kolory poświaty {default}."
+		"tr"		"Gökkuşağı parlama renkleri {default}kapatıldı."
+		"it"		"Disattivati {default}i colori glow arcobaleno."
+		"ua"		"Вимкнено {default}райдужне світіння."
+		"zho"		"已關閉 {default}彩虹光暈顏色。"
+		"cze"		"Vypnuty {default}duhové barvy záře."
 	}
 
 	"GC_Rainbow_On"
@@ -133,6 +199,12 @@
 		"de"		"Aktiviert {default}: Regenbogen-Leuchtfarben. (Frequenz = {olive}{1}{default})"
 		"pt"		"Ativado {default}o brilho arco-íris. (Frequência = {olive}{1}{default})"
 		"chi"		"已开启 {default}彩虹光晕颜色。（频率 = {olive}{1}{default}）"
+		"pl"		"Włączono tęczowe kolory poświaty {default}. (Częstotliwość = {olive}{1}{default})"
+		"tr"		"Gökkuşağı parlama renkleri {default}açıldı. (Sıklık = {olive}{1}{default})"
+		"it"		"Attivati {default}i colori glow arcobaleno. (Frequenza = {olive}{1}{default})"
+		"ua"		"Увімкнено {default}райдужне світіння. (Частота = {olive}{1}{default})"
+		"zho"		"已開啟 {default}彩虹光暈顏色。（頻率 = {olive}{1}{default}）"
+		"cze"		"Zapnuty {default}duhové barvy záře. (Frekvence = {olive}{1}{default})"
 	}
 
 	"GC_Too_Dark"
@@ -145,5 +217,11 @@
 		"de"		"Deine Leuchtfarbe ist zu dunkel! (Helligkeit = {red}{1}{default}/255, erlaubte Werte {green}> {2}{default})"
 		"pt"		"Sua cor de brilho é escura demais! (brilho = {red}{1}{default}/255, valores permitidos {green}> {2}{default})"
 		"chi"		"你的光晕颜色太暗了！（亮度 = {red}{1}{default}/255，允许的值为 {green}> {2}{default}）"
+		"pl"		"Twój kolor poświaty jest zbyt ciemny! (jasność = {red}{1}{default}/255, dozwolone wartości {green}> {2}{default})"
+		"tr"		"Parlama renginiz çok koyu! (parlaklık = {red}{1}{default}/255, izin verilen değerler {green}> {2}{default})"
+		"it"		"Il tuo colore glow è troppo scuro! (luminosità = {red}{1}{default}/255, valori consentiti {green}> {2}{default})"
+		"ua"		"Ваш колір світіння занадто темний! (яскравість = {red}{1}{default}/255, допустимі значення {green}> {2}{default})"
+		"zho"		"你的光暈顏色太暗了！（亮度 = {red}{1}{default}/255，允許的值為 {green}> {2}{default}）"
+		"cze"		"Tvoje barva záře je příliš tmavá! (jas = {red}{1}{default}/255, povolené hodnoty {green}> {2}{default})"
 	}
 }
